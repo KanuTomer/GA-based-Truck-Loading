@@ -1,0 +1,32 @@
+# Python caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Local environment
+.env
+.env.*
+
+# Gradio / local app state
+.gradio/
+
+# Local uploads, generated outputs, and temporary run artifacts
+uploads/
+outputs/
+runs/
+tmp/
+temp/
+*.log
+
+# Local planning references
+4 Week Plan.md
+Milestone Plan.md
+
