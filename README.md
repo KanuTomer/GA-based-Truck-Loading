@@ -26,5 +26,4 @@ It will not include dissertation baselines, historical scripts, paper-reporting 
 
 ## Development Status
 
-Milestone 0 scaffold is in place. Solver code and app functionality will be added in later milestones.
-
+Milestone 1 adds the cinematic clickable UI shell, truck presets, and placeholder interactions. Solver code, validation, dataset parsing, and 3D animation will be added in later milestones.
