@@ -2,9 +2,23 @@
 
 from __future__ import annotations
 
+import base64
+from functools import lru_cache
+from html import escape
+from pathlib import Path
+
 import gradio as gr
 
-from truck_loading.presets import format_dimensions, get_preset, preset_names
+from truck_loading.presets import (
+    ASSET_ROOT,
+    default_variant_name,
+    format_dimensions,
+    get_preset,
+    model_path_for,
+    preset_names,
+    preview_path_for,
+    variant_names,
+)
 
 
 CUSTOM_CSS = """
@@ -40,6 +54,11 @@ gradio-app {
     color: #1c252c;
 }
 
+.gradio-container .prose {
+    font-size: 0.96rem;
+    line-height: 1.5;
+}
+
 .main,
 main,
 .wrap,
@@ -59,6 +78,11 @@ main,
     width: 100%;
     max-width: 100%;
     padding: 18px;
+}
+
+.main-workspace {
+    align-items: stretch;
+    flex-wrap: wrap !important;
 }
 
 .hero {
@@ -123,8 +147,8 @@ main,
 .result-panel,
 .stage-panel {
     border: 1px solid rgba(17, 20, 23, 0.1);
-    border-radius: 12px;
-    background: rgba(255, 255, 255, 0.78);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.86);
     box-shadow: 0 18px 50px rgba(35, 47, 58, 0.12);
     padding: 16px;
 }
@@ -144,8 +168,42 @@ main,
 .control-panel td,
 .control-panel th,
 .result-panel td,
-.result-panel th {
+.result-panel th,
+.control-panel strong,
+.result-panel strong,
+.control-panel .prose strong,
+.result-panel .prose strong {
     color: #1c252c !important;
+}
+
+.control-panel .prose p,
+.control-panel .prose li,
+.control-panel .prose table,
+.result-panel .prose p,
+.result-panel .prose li,
+.result-panel .prose table {
+    font-size: 0.9rem !important;
+    line-height: 1.48 !important;
+}
+
+.control-panel .prose h2,
+.control-panel .prose h3,
+.result-panel .prose h2,
+.result-panel .prose h3 {
+    margin-top: 0.2rem !important;
+    margin-bottom: 0.55rem !important;
+}
+
+.truck-details,
+.run-status {
+    border: 1px solid rgba(17, 20, 23, 0.1);
+    border-radius: 12px;
+    background: #f9fbfb;
+    padding: 12px;
+}
+
+.truck-details table {
+    margin-top: 0.65rem !important;
 }
 
 .stage-panel {
@@ -154,94 +212,216 @@ main,
     overflow: hidden;
 }
 
-.stage-shell {
-    position: relative;
-    min-height: 460px;
+.stage-panel label,
+.stage-panel h2,
+.stage-panel h3,
+.stage-panel p {
+    color: var(--text-main) !important;
+}
+
+.truck-card-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin: 12px 0 14px;
+}
+
+.truck-card {
+    min-height: 214px;
+    border: 1px solid rgba(17, 20, 23, 0.12);
     border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 12px;
     background:
-        linear-gradient(160deg, rgba(34, 211, 197, 0.12), transparent 26%),
-        linear-gradient(340deg, rgba(247, 201, 72, 0.09), transparent 28%),
-        #101418;
+        linear-gradient(145deg, rgba(34, 211, 197, 0.11), transparent 44%),
+        linear-gradient(320deg, rgba(247, 201, 72, 0.14), transparent 36%),
+        #ffffff;
+    box-shadow: 0 14px 32px rgba(35, 47, 58, 0.1);
     overflow: hidden;
 }
 
-.stage-grid {
-    position: absolute;
-    inset: 0;
-    background-image:
-        linear-gradient(rgba(255, 255, 255, 0.055) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.055) 1px, transparent 1px);
-    background-size: 42px 42px;
-    transform: perspective(900px) rotateX(58deg) translateY(120px);
-    transform-origin: 50% 100%;
+.truck-card.is-selected {
+    border-color: rgba(34, 211, 197, 0.82);
+    box-shadow: 0 16px 38px rgba(34, 211, 197, 0.18);
 }
 
-.truck-outline {
-    position: absolute;
-    left: 9%;
-    right: 9%;
-    top: 27%;
-    height: 230px;
-    border: 2px solid rgba(34, 211, 197, 0.72);
-    border-radius: 12px;
-    box-shadow: inset 0 0 42px rgba(34, 211, 197, 0.08), 0 0 34px rgba(34, 211, 197, 0.12);
-}
-
-.cab {
-    position: absolute;
-    right: 4%;
-    top: 39%;
-    width: 72px;
-    height: 105px;
-    border: 2px solid rgba(247, 201, 72, 0.76);
-    border-radius: 10px 22px 22px 10px;
-    background: rgba(247, 201, 72, 0.08);
-}
-
-.box-stack {
-    position: absolute;
-    left: 14%;
-    bottom: 30%;
+.truck-card-visuals {
     display: grid;
-    grid-template-columns: repeat(5, 58px);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
+    margin-bottom: 12px;
 }
 
-.demo-box {
-    height: 42px;
-    border-radius: 6px;
-    border: 1px solid rgba(255, 255, 255, 0.35);
-    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.22);
+.truck-thumb {
+    display: grid;
+    min-height: 82px;
+    place-items: center;
+    border: 1px solid rgba(17, 20, 23, 0.1);
+    border-radius: 10px;
+    background:
+        radial-gradient(circle at 50% 18%, rgba(34, 211, 197, 0.18), transparent 42%),
+        #eff4f5;
 }
 
-.demo-box:nth-child(1),
-.demo-box:nth-child(6) { background: #22d3c5; }
-.demo-box:nth-child(2),
-.demo-box:nth-child(7) { background: #f7c948; }
-.demo-box:nth-child(3),
-.demo-box:nth-child(8) { background: #ff6b5f; }
-.demo-box:nth-child(4),
-.demo-box:nth-child(9) { background: #8aa0b4; }
-.demo-box:nth-child(5),
-.demo-box:nth-child(10) { background: #78d979; }
-
-.stage-caption {
-    position: absolute;
-    left: 22px;
-    bottom: 20px;
-    max-width: 540px;
+.truck-thumb img {
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+    image-rendering: auto;
+    filter: drop-shadow(0 12px 14px rgba(17, 20, 23, 0.18));
 }
 
-.stage-caption h2 {
+.truck-card-kicker {
+    color: #51616f;
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.truck-card-title {
+    margin-top: 8px;
+    color: #141a1f;
+    font-size: 1.05rem;
+    font-weight: 900;
+}
+
+.truck-card-dims {
+    margin-top: 8px;
+    color: #556471;
+    font-size: 0.86rem;
+    line-height: 1.35;
+}
+
+.truck-card-bodies {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 12px;
+}
+
+.body-chip {
+    border: 1px solid rgba(17, 20, 23, 0.12);
+    border-radius: 999px;
+    padding: 4px 8px;
+    background: #eef4f5;
+    color: #26333c;
+    font-size: 0.72rem;
+    font-weight: 800;
+}
+
+.truck-class-radio,
+.body-style-radio {
+    margin-top: 8px;
+}
+
+.model-stage {
+    position: relative;
+    min-height: 630px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background:
+        radial-gradient(circle at 74% 22%, rgba(247, 201, 72, 0.18), transparent 22%),
+        linear-gradient(160deg, rgba(34, 211, 197, 0.16), transparent 28%),
+        linear-gradient(340deg, rgba(255, 107, 95, 0.1), transparent 30%),
+        #101418;
+    overflow: hidden;
+    padding: 18px;
+}
+
+.model-stage-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 12px;
+}
+
+.model-stage-kicker {
+    color: var(--teal);
+    font-size: 0.76rem;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.model-stage-title {
+    margin-top: 6px;
     color: var(--text-main);
-    font-size: 1.45rem;
-    margin: 0 0 8px;
+    font-size: 1.55rem;
+    font-weight: 900;
 }
 
-.stage-caption p {
+.model-stage-copy {
+    max-width: 690px;
     color: #c7d0d8;
+    line-height: 1.45;
+}
+
+.model-pill {
+    border: 1px solid rgba(34, 211, 197, 0.35);
+    border-radius: 999px;
+    padding: 8px 11px;
+    color: #d9fffb;
+    background: rgba(34, 211, 197, 0.08);
+    font-size: 0.78rem;
+    font-weight: 900;
+    white-space: nowrap;
+}
+
+.model-frame {
+    overflow: hidden;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background:
+        linear-gradient(rgba(255, 255, 255, 0.055) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.055) 1px, transparent 1px),
+        #0f1418;
+    background-size: 44px 44px;
+    box-shadow:
+        inset 0 0 58px rgba(34, 211, 197, 0.08),
+        0 18px 42px rgba(0, 0, 0, 0.24);
+}
+
+.asset-preview-band {
+    display: grid;
+    grid-template-columns: 82px minmax(0, 1fr);
+    align-items: center;
+    gap: 14px;
+    margin-top: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.06);
+    padding: 12px;
+}
+
+.selected-preview {
+    display: grid;
+    min-height: 82px;
+    place-items: center;
+    border-radius: 12px;
+    background:
+        radial-gradient(circle at 50% 20%, rgba(34, 211, 197, 0.22), transparent 45%),
+        rgba(255, 255, 255, 0.08);
+}
+
+.selected-preview img {
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+    filter: drop-shadow(0 18px 22px rgba(0, 0, 0, 0.32));
+}
+
+.variant-copy {
     margin: 0;
+}
+
+.variant-copy,
+.variant-copy p,
+.variant-copy h3,
+.variant-copy strong {
+    color: #e6edf2 !important;
+}
+
+.variant-copy .prose {
+    font-size: 0.92rem !important;
 }
 
 .metric-grid {
@@ -294,12 +474,18 @@ main,
 
 @media (max-width: 900px) {
     .hero-strip,
-    .metric-grid {
+    .metric-grid,
+    .truck-card-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    .box-stack {
-        grid-template-columns: repeat(3, 50px);
+    .model-stage-header {
+        display: block;
+    }
+
+    .model-pill {
+        display: inline-block;
+        margin-top: 12px;
     }
 }
 
@@ -313,22 +499,30 @@ main,
     }
 
     .hero-strip,
-    .metric-grid {
+    .metric-grid,
+    .truck-card-grid {
         grid-template-columns: 1fr;
     }
 
-    .stage-shell {
-        min-height: 360px;
+    .model-stage {
+        min-height: 440px;
+        padding: 12px;
     }
 
-    .truck-outline {
-        left: 6%;
-        right: 12%;
+    .main-workspace {
+        flex-direction: column !important;
     }
 
-    .box-stack {
-        grid-template-columns: repeat(2, 48px);
-        left: 12%;
+    .main-workspace > div,
+    .main-workspace .control-panel,
+    .main-workspace .stage-panel {
+        width: 100% !important;
+        min-width: 0 !important;
+        flex: 1 1 auto !important;
+    }
+
+    .asset-preview-band {
+        grid-template-columns: 1fr;
     }
 }
 """
@@ -347,27 +541,83 @@ def dataset_helper(source: str) -> str:
     )
 
 
+@lru_cache(maxsize=16)
+def image_data_uri(path: str) -> str:
+    image_path = Path(path)
+    encoded = base64.b64encode(image_path.read_bytes()).decode("ascii")
+    return f"data:image/png;base64,{encoded}"
+
+
+def selected_asset_html(truck_name: str, variant_name: str) -> str:
+    preset = get_preset(truck_name)
+    variant = preset.get_variant(variant_name)
+    preview_src = image_data_uri(preview_path_for(preset.name, variant.name))
+    dims = f"{preset.length_mm:,} x {preset.width_mm:,} x {preset.height_mm:,} mm"
+
+    return f"""
+    <div class="asset-preview-band">
+        <div class="selected-preview">
+            <img src="{preview_src}" alt="{escape(variant.name)} preview">
+        </div>
+        <div class="variant-copy">
+            <h3>{escape(variant.name)}</h3>
+            <p>{escape(variant.description)}</p>
+            <p><strong>Truck class:</strong> {escape(preset.name)}</p>
+            <p><strong>Internal load space:</strong> {escape(dims)}</p>
+        </div>
+    </div>
+    """
+
+
+def ready_status(source: str, truck_name: str, variant_name: str) -> str:
+    preset = get_preset(truck_name)
+    dims = f"{preset.length_mm:,} x {preset.width_mm:,} x {preset.height_mm:,} mm"
+    return (
+        "### Ready for visual run setup\n"
+        f"Dataset source: **{source}**\n\n"
+        f"Truck class: **{preset.name}**\n\n"
+        f"Body style: **{variant_name}**\n\n"
+        f"Internal load space: **{dims}**"
+    )
+
+
 def update_dataset_source(source: str):
     return dataset_helper(source), gr.update(visible=source == "Upload dataset")
 
 
-def update_truck_preset(name: str):
-    preset = get_preset(name)
-    return format_dimensions(name), gr.update(visible=preset.is_custom)
+def update_truck_class(source: str, truck_name: str):
+    selected_variant = default_variant_name(truck_name)
+    return (
+        gr.update(choices=variant_names(truck_name), value=selected_variant),
+        format_dimensions(truck_name),
+        truck_cards_html(truck_name),
+        model_path_for(truck_name, selected_variant),
+        selected_asset_html(truck_name, selected_variant),
+        ready_status(source, truck_name, selected_variant),
+    )
 
 
-def run_placeholder(source: str, truck_name: str, custom_l: float, custom_w: float, custom_h: float) -> str:
+def update_body_style(source: str, truck_name: str, variant_name: str):
+    return (
+        model_path_for(truck_name, variant_name),
+        selected_asset_html(truck_name, variant_name),
+        ready_status(source, truck_name, variant_name),
+    )
+
+
+def run_placeholder(source: str, truck_name: str, variant_name: str) -> str:
     preset = get_preset(truck_name)
-    if preset.is_custom:
-        dims = f"{int(custom_l or 0):,} x {int(custom_w or 0):,} x {int(custom_h or 0):,} mm"
-    else:
-        dims = f"{preset.length_mm:,} x {preset.width_mm:,} x {preset.height_mm:,} mm"
+    variant = preset.get_variant(variant_name)
+    dims = f"{preset.length_mm:,} x {preset.width_mm:,} x {preset.height_mm:,} mm"
 
     return (
-        f"### Proposed GA run queued for a later milestone\n"
+        "### Proposed GA run queued for a later milestone\n"
         f"Dataset source: **{source}**\n\n"
-        f"Truck profile: **{truck_name}** ({dims})\n\n"
-        "Validation, solver execution, and 3D loading animation are intentionally placeholders in M1."
+        f"Truck class: **{preset.name}**\n\n"
+        f"Indian-equivalent class: **{preset.indian_equivalent}**\n\n"
+        f"Body style: **{variant.name}**\n\n"
+        f"Internal load space: **{dims}**\n\n"
+        "Validation, solver execution, and animated box loading remain placeholders in M2."
     )
 
 
@@ -387,7 +637,7 @@ def hero_html() -> str:
             </div>
             <div class="strip-item">
                 <div class="strip-label">Truck</div>
-                <div class="strip-value">India presets</div>
+                <div class="strip-value">Two visual classes</div>
             </div>
             <div class="strip-item">
                 <div class="strip-label">Model</div>
@@ -402,21 +652,52 @@ def hero_html() -> str:
     """
 
 
-def stage_html() -> str:
-    boxes = "".join('<div class="demo-box"></div>' for _ in range(10))
-    return f"""
-    <div class="stage-shell">
-        <div class="stage-grid"></div>
-        <div class="truck-outline"></div>
-        <div class="cab"></div>
-        <div class="box-stack">{boxes}</div>
-        <div class="stage-caption">
-            <h2>Truck loading stage</h2>
-            <p>
-                The live Three.js truck scene arrives after dataset validation and placement data
-                are connected. This panel reserves the visual center of the product now.
-            </p>
+def truck_cards_html(selected_name: str) -> str:
+    cards = []
+    for name in preset_names():
+        preset = get_preset(name)
+        selected_class = " is-selected" if preset.name == selected_name else ""
+        visuals = "".join(
+            f"""
+            <div class="truck-thumb">
+                <img src="{image_data_uri(preview_path_for(preset.name, variant.name))}"
+                     alt="{escape(variant.name)} preview">
+            </div>
+            """
+            for variant in preset.variants
+        )
+        bodies = "".join(
+            f'<span class="body-chip">{escape(variant.name)}</span>' for variant in preset.variants
+        )
+        cards.append(
+            f"""
+            <div class="truck-card{selected_class}">
+                <div class="truck-card-visuals">{visuals}</div>
+                <div class="truck-card-kicker">{escape(preset.indian_equivalent)}</div>
+                <div class="truck-card-title">{escape(preset.name)}</div>
+                <div class="truck-card-dims">
+                    {preset.length_ft:g} ft x {preset.width_ft:g} ft x {preset.height_ft:g} ft<br>
+                    {preset.length_mm:,} x {preset.width_mm:,} x {preset.height_mm:,} mm
+                </div>
+                <div class="truck-card-bodies">{bodies}</div>
+            </div>
+            """
+        )
+    return f'<div class="truck-card-grid">{"".join(cards)}</div>'
+
+
+def model_stage_header_html() -> str:
+    return """
+    <div class="model-stage-header">
+        <div>
+            <div class="model-stage-kicker">Asset-backed truck selection</div>
+            <div class="model-stage-title">3D truck preview</div>
+            <div class="model-stage-copy">
+                The selected Kenney model previews the truck body for the future packing scene.
+                Actual box loading animation starts after validation and placement data are connected.
+            </div>
         </div>
+        <div class="model-pill">Kenney Car Kit - CC0</div>
     </div>
     """
 
@@ -442,11 +723,14 @@ def metrics_html() -> str:
 
 
 def build_app() -> gr.Blocks:
+    default_truck = preset_names()[0]
+    default_variant = default_variant_name(default_truck)
+
     with gr.Blocks(title="GA-Based Truck Loading") as demo:
         with gr.Column(elem_classes=["app-shell"]):
             gr.HTML(hero_html())
 
-            with gr.Row(equal_height=False):
+            with gr.Row(equal_height=False, elem_classes=["main-workspace"]):
                 with gr.Column(scale=1, min_width=300, elem_classes=["control-panel"]):
                     gr.Markdown("## Control deck")
                     dataset_source = gr.Radio(
@@ -459,20 +743,29 @@ def build_app() -> gr.Blocks:
                         file_types=[".json", ".vrp"],
                         visible=False,
                     )
-                    dataset_status = gr.Markdown(dataset_helper("Demo dataset"))
-
-                    truck_preset = gr.Dropdown(
-                        choices=preset_names(),
-                        value="Tata 407 Type",
-                        label="Truck preset",
+                    dataset_status = gr.Markdown(
+                        dataset_helper("Demo dataset"),
+                        elem_classes=["truck-details"],
                     )
-                    truck_dimensions = gr.Markdown(format_dimensions("Tata 407 Type"))
 
-                    with gr.Group(visible=False) as custom_dimensions:
-                        gr.Markdown("### Custom internal dimensions")
-                        custom_length = gr.Number(value=4000, label="Length mm", precision=0)
-                        custom_width = gr.Number(value=1800, label="Width mm", precision=0)
-                        custom_height = gr.Number(value=1800, label="Height mm", precision=0)
+                    gr.Markdown("## Truck selector")
+                    truck_cards = gr.HTML(truck_cards_html(default_truck))
+                    truck_preset = gr.Radio(
+                        choices=preset_names(),
+                        value=default_truck,
+                        label="Truck class",
+                        elem_classes=["truck-class-radio"],
+                    )
+                    truck_variant = gr.Radio(
+                        choices=variant_names(default_truck),
+                        value=default_variant,
+                        label="Body style",
+                        elem_classes=["body-style-radio"],
+                    )
+                    truck_dimensions = gr.Markdown(
+                        format_dimensions(default_truck),
+                        elem_classes=["truck-details"],
+                    )
 
                     gr.Textbox(
                         value="Proposed packing-aware genetic algorithm",
@@ -481,7 +774,7 @@ def build_app() -> gr.Blocks:
                     )
 
                     with gr.Row():
-                        pop_size = gr.Slider(
+                        gr.Slider(
                             20,
                             100,
                             value=40,
@@ -489,7 +782,7 @@ def build_app() -> gr.Blocks:
                             label="Population",
                             interactive=False,
                         )
-                        generations = gr.Slider(
+                        gr.Slider(
                             10,
                             100,
                             value=50,
@@ -500,15 +793,30 @@ def build_app() -> gr.Blocks:
 
                     run_button = gr.Button("Prepare visual run", variant="primary")
                     run_status = gr.Markdown(
-                        "### Ready\nChoose a dataset source and truck profile to preview the M1 flow."
+                        ready_status("Demo dataset", default_truck, default_variant),
+                        elem_classes=["run-status"],
                     )
 
                 with gr.Column(scale=2, min_width=300, elem_classes=["stage-panel"]):
-                    gr.HTML(stage_html())
+                    with gr.Column(elem_classes=["model-stage"]):
+                        gr.HTML(model_stage_header_html())
+                        with gr.Column(elem_classes=["model-frame"]):
+                            truck_model = gr.Model3D(
+                                value=model_path_for(default_truck, default_variant),
+                                label="Selected truck model",
+                                show_label=False,
+                                clear_color=(0.06, 0.08, 0.1, 1.0),
+                                display_mode="solid",
+                                camera_position=(2.7, 1.8, 3.2),
+                                height=470,
+                            )
+                        variant_description = gr.HTML(
+                            selected_asset_html(default_truck, default_variant),
+                        )
 
             with gr.Column(elem_classes=["result-panel"]):
                 gr.Markdown("## Result preview")
-                metric_cards = gr.HTML(metrics_html())
+                gr.HTML(metrics_html())
                 with gr.Row():
                     with gr.Column(scale=1):
                         gr.Markdown("### Convergence preview")
@@ -534,13 +842,25 @@ def build_app() -> gr.Blocks:
             outputs=[dataset_status, upload_file],
         )
         truck_preset.change(
-            fn=update_truck_preset,
-            inputs=truck_preset,
-            outputs=[truck_dimensions, custom_dimensions],
+            fn=update_truck_class,
+            inputs=[dataset_source, truck_preset],
+            outputs=[
+                truck_variant,
+                truck_dimensions,
+                truck_cards,
+                truck_model,
+                variant_description,
+                run_status,
+            ],
+        )
+        truck_variant.change(
+            fn=update_body_style,
+            inputs=[dataset_source, truck_preset, truck_variant],
+            outputs=[truck_model, variant_description, run_status],
         )
         run_button.click(
             fn=run_placeholder,
-            inputs=[dataset_source, truck_preset, custom_length, custom_width, custom_height],
+            inputs=[dataset_source, truck_preset, truck_variant],
             outputs=run_status,
         )
 
@@ -550,5 +870,6 @@ def build_app() -> gr.Blocks:
 if __name__ == "__main__":
     build_app().launch(
         css=CUSTOM_CSS,
+        allowed_paths=[str(ASSET_ROOT)],
         theme=gr.themes.Soft(primary_hue="cyan", secondary_hue="amber"),
     )

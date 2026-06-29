@@ -7,7 +7,7 @@ This repository is the standalone web-app project derived from the dissertation 
 ## Planned MVP
 
 - Upload or choose a demo dataset.
-- Select an India-oriented truck/container preset.
+- Select one of two India-oriented truck classes with a 3D body-style preview.
 - Validate customers, boxes, assignments, and container dimensions.
 - Run a capped version of the proposed GA model.
 - Inspect metrics, routes, and an animated 3D truck-packing visualization.
@@ -24,6 +24,14 @@ This repo will include only the code needed for the app demo:
 
 It will not include dissertation baselines, historical scripts, paper-reporting outputs, ablation studies, or generated result archives.
 
+## Assets
+
+The truck preview models use selected assets from Kenney Car Kit 3.1, licensed
+under Creative Commons Zero (CC0). Credit is not required, but the original
+license is included under `assets/kenney-car-kit/License.txt`.
+
 ## Development Status
 
-Milestone 1 adds the cinematic clickable UI shell, truck presets, and placeholder interactions. Solver code, validation, dataset parsing, and 3D animation will be added in later milestones.
+Milestone 2 adds an asset-backed two-truck selector with Kenney `.glb` previews.
+Solver code, validation, dataset parsing, and animated box loading will be added
+in later milestones.

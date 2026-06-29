@@ -1,136 +1,115 @@
-"""Truck/container presets for the visual loading demo."""
+"""Truck presets and 3D asset metadata for the visual loading demo."""
 
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import Path
+
+
+ASSET_ROOT = Path(__file__).resolve().parent.parent / "assets" / "kenney-car-kit"
+MODEL_ROOT = ASSET_ROOT / "models"
+PREVIEW_ROOT = ASSET_ROOT / "previews"
+DEFAULT_PRESET_NAME = "City Mini Truck"
+
+
+@dataclass(frozen=True)
+class TruckModelVariant:
+    name: str
+    model_file: str
+    preview_file: str
+    description: str
+
+    @property
+    def model_path(self) -> Path:
+        return MODEL_ROOT / self.model_file
+
+    @property
+    def preview_path(self) -> Path:
+        return PREVIEW_ROOT / self.preview_file
 
 
 @dataclass(frozen=True)
 class TruckPreset:
     name: str
-    length_ft: float | None
-    width_ft: float | None
-    height_ft: float | None
-    length_mm: int | None
-    width_mm: int | None
-    height_mm: int | None
+    indian_equivalent: str
+    length_ft: float
+    width_ft: float
+    height_ft: float
+    length_mm: int
+    width_mm: int
+    height_mm: int
     description: str
+    variants: tuple[TruckModelVariant, ...]
+    default_variant: str
 
     @property
     def is_custom(self) -> bool:
-        return self.length_mm is None or self.width_mm is None or self.height_mm is None
+        return False
+
+    def get_variant(self, variant_name: str | None = None) -> TruckModelVariant:
+        selected = variant_name or self.default_variant
+        for variant in self.variants:
+            if variant.name == selected:
+                return variant
+        return self.variants[0]
 
 
 TRUCK_PRESETS: tuple[TruckPreset, ...] = (
     TruckPreset(
-        name="Three-Wheeler Cargo",
-        length_ft=5.5,
-        width_ft=4.5,
-        height_ft=5.0,
-        length_mm=1676,
-        width_mm=1372,
-        height_mm=1524,
-        description="Compact city cargo profile for small parcel-style loads.",
-    ),
-    TruckPreset(
-        name="Tata Ace / Mini Truck",
+        name="City Mini Truck",
+        indian_equivalent="Tata Ace / Mini Truck and Pickup / Bolero class",
         length_ft=7.0,
         width_ft=4.8,
         height_ft=4.8,
         length_mm=2134,
         width_mm=1463,
         height_mm=1463,
-        description="Small commercial load body for dense urban delivery demos.",
+        description=(
+            "Compact urban delivery profile for smaller customer drops and tight city routes."
+        ),
+        variants=(
+            TruckModelVariant(
+                name="Open pickup body",
+                model_file="truck.glb",
+                preview_file="truck.png",
+                description="Open-bed pickup styling for a small Indian utility truck analogue.",
+            ),
+            TruckModelVariant(
+                name="Closed delivery van",
+                model_file="van.glb",
+                preview_file="van.png",
+                description="Closed-body van styling for parcel-style city delivery demos.",
+            ),
+        ),
+        default_variant="Open pickup body",
     ),
     TruckPreset(
-        name="Pickup / Bolero Type",
-        length_ft=8.0,
-        width_ft=5.0,
-        height_ft=4.8,
-        length_mm=2438,
-        width_mm=1524,
-        height_mm=1463,
-        description="Pickup-sized load bay for short regional routes.",
-    ),
-    TruckPreset(
-        name="Tata 407 Type",
-        length_ft=9.0,
-        width_ft=5.5,
-        height_ft=5.5,
-        length_mm=2743,
-        width_mm=1676,
-        height_mm=1676,
-        description="Classic light truck profile for balanced small-fleet demos.",
-    ),
-    TruckPreset(
-        name="Eicher 14 ft",
+        name="Medium Cargo Truck",
+        indian_equivalent="Tata 407 / Eicher 14 ft class",
         length_ft=14.0,
         width_ft=6.0,
         height_ft=6.5,
         length_mm=4267,
         width_mm=1829,
         height_mm=1981,
-        description="Mid-size commercial cargo space with more visible packing depth.",
-    ),
-    TruckPreset(
-        name="Eicher 17 ft",
-        length_ft=17.0,
-        width_ft=6.5,
-        height_ft=7.0,
-        length_mm=5182,
-        width_mm=1981,
-        height_mm=2134,
-        description="Larger load body for multi-route packing demonstrations.",
-    ),
-    TruckPreset(
-        name="Eicher 19 ft",
-        length_ft=19.0,
-        width_ft=7.0,
-        height_ft=7.0,
-        length_mm=5791,
-        width_mm=2134,
-        height_mm=2134,
-        description="High-capacity rigid truck profile with wide visual staging.",
-    ),
-    TruckPreset(
-        name="Taurus / 22 ft Truck",
-        length_ft=22.0,
-        width_ft=7.5,
-        height_ft=7.0,
-        length_mm=6706,
-        width_mm=2286,
-        height_mm=2134,
-        description="Large truck body for dramatic loading animations.",
-    ),
-    TruckPreset(
-        name="24 ft Container Body",
-        length_ft=24.0,
-        width_ft=7.5,
-        height_ft=7.5,
-        length_mm=7315,
-        width_mm=2286,
-        height_mm=2286,
-        description="Container-style body for high-volume route packing.",
-    ),
-    TruckPreset(
-        name="32 ft Container Body",
-        length_ft=32.0,
-        width_ft=8.0,
-        height_ft=8.0,
-        length_mm=9754,
-        width_mm=2438,
-        height_mm=2438,
-        description="Full-scale container body for maximum visual contrast.",
-    ),
-    TruckPreset(
-        name="Custom",
-        length_ft=None,
-        width_ft=None,
-        height_ft=None,
-        length_mm=None,
-        width_mm=None,
-        height_mm=None,
-        description="Use manually entered internal cargo dimensions.",
+        description=(
+            "Mid-size cargo profile with enough length and height to make the packed load readable."
+        ),
+        variants=(
+            TruckModelVariant(
+                name="Covered cargo body",
+                model_file="delivery.glb",
+                preview_file="delivery.png",
+                description="Covered cargo styling for a regional delivery truck analogue.",
+            ),
+            TruckModelVariant(
+                name="Flatbed utility body",
+                model_file="truck-flat.glb",
+                preview_file="truck-flat.png",
+                description="Flatbed utility styling for visually open cargo-loading demos.",
+            ),
+        ),
+        default_variant="Covered cargo body",
     ),
 )
 
@@ -142,25 +121,54 @@ def preset_names() -> list[str]:
     return [preset.name for preset in TRUCK_PRESETS]
 
 
-def get_preset(name: str) -> TruckPreset:
-    return TRUCK_PRESET_BY_NAME.get(name, TRUCK_PRESET_BY_NAME["Tata 407 Type"])
+def get_preset(name: str | None) -> TruckPreset:
+    return TRUCK_PRESET_BY_NAME.get(name or DEFAULT_PRESET_NAME, TRUCK_PRESET_BY_NAME[DEFAULT_PRESET_NAME])
 
 
-def format_dimensions(name: str) -> str:
+def variant_names(preset_name: str | None) -> list[str]:
+    return [variant.name for variant in get_preset(preset_name).variants]
+
+
+def default_variant_name(preset_name: str | None) -> str:
+    return get_preset(preset_name).default_variant
+
+
+def get_variant(preset_name: str | None, variant_name: str | None = None) -> TruckModelVariant:
+    return get_preset(preset_name).get_variant(variant_name)
+
+
+def model_path_for(preset_name: str | None, variant_name: str | None = None) -> str:
+    return str(get_variant(preset_name, variant_name).model_path)
+
+
+def preview_path_for(preset_name: str | None, variant_name: str | None = None) -> str:
+    return str(get_variant(preset_name, variant_name).preview_path)
+
+
+def format_dimensions(name: str | None) -> str:
     preset = get_preset(name)
-    if preset.is_custom:
-        return (
-            "### Custom cargo body\n"
-            "Enter internal load-space dimensions in millimeters. These values will drive "
-            "validation and the future 3D truck-packing scene."
-        )
+    variants = ", ".join(variant.name for variant in preset.variants)
 
     return (
         f"### {preset.name}\n"
         f"{preset.description}\n\n"
+        f"**Closest Indian equivalent:** {preset.indian_equivalent}\n\n"
+        f"**Body styles:** {variants}\n\n"
         f"| Unit | Length | Width | Height |\n"
         f"|---|---:|---:|---:|\n"
         f"| Feet | {preset.length_ft:g} | {preset.width_ft:g} | {preset.height_ft:g} |\n"
         f"| Millimeters | {preset.length_mm:,} | {preset.width_mm:,} | {preset.height_mm:,} |"
     )
 
+
+def format_variant_description(preset_name: str | None, variant_name: str | None = None) -> str:
+    preset = get_preset(preset_name)
+    variant = preset.get_variant(variant_name)
+    dims = f"{preset.length_mm:,} x {preset.width_mm:,} x {preset.height_mm:,} mm"
+
+    return (
+        f"### {variant.name}\n"
+        f"{variant.description}\n\n"
+        f"**Truck class:** {preset.name}\n\n"
+        f"**Internal load space:** {dims}"
+    )
