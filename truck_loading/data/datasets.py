@@ -15,23 +15,23 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 DEMO_DATASET_ROOT = REPO_ROOT / "samples" / "conference_batch"
 DEMO_DATASET_FILES: tuple[str, ...] = (
     "XML50_1111_01_merged_with_boxes_norm.json",
-    "XML50_1142_01_merged_with_boxes_norm.json",
     "XML100_1111_01_merged_with_boxes_norm.json",
-    "XML100_1142_01_merged_with_boxes_norm.json",
     "XML150_1111_01_merged_with_boxes_norm.json",
-    "XML150_1142_01_merged_with_boxes_norm.json",
     "XML200_1111_01_merged_with_boxes_norm.json",
+    "XML50_1142_01_merged_with_boxes_norm.json",
+    "XML100_1142_01_merged_with_boxes_norm.json",
+    "XML150_1142_01_merged_with_boxes_norm.json",
     "XML200_1142_01_merged_with_boxes_norm.json",
 )
 DEMO_DATASET_LABELS: tuple[str, ...] = (
-    "50 customers - group 1",
-    "50 customers - group 2",
-    "100 customers - group 1",
-    "100 customers - group 2",
-    "150 customers - group 1",
-    "150 customers - group 2",
-    "200 customers - group 1",
-    "200 customers - group 2",
+    "G1 - 50",
+    "G1 - 100",
+    "G1 - 150",
+    "G1 - 200",
+    "G2 - 50",
+    "G2 - 100",
+    "G2 - 150",
+    "G2 - 200",
 )
 THIN_BOX_THRESHOLD_MM = 75.0
 

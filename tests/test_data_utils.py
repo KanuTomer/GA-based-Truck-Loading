@@ -15,14 +15,14 @@ from truck_loading.data import (
 
 
 EXPECTED_COUNTS = {
-    "50 customers - group 1": (50, 126),
-    "50 customers - group 2": (50, 120),
-    "100 customers - group 1": (100, 252),
-    "100 customers - group 2": (100, 240),
-    "150 customers - group 1": (150, 372),
-    "150 customers - group 2": (150, 361),
-    "200 customers - group 1": (200, 497),
-    "200 customers - group 2": (200, 478),
+    "G1 - 50": (50, 126),
+    "G1 - 100": (100, 252),
+    "G1 - 150": (150, 372),
+    "G1 - 200": (200, 497),
+    "G2 - 50": (50, 120),
+    "G2 - 100": (100, 240),
+    "G2 - 150": (150, 361),
+    "G2 - 200": (200, 478),
 }
 
 

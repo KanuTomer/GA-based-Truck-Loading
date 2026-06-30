@@ -1605,6 +1605,19 @@ gradio-app {
     font-weight: 900 !important;
 }
 
+.gradio-container input[type="number"] {
+    appearance: textfield !important;
+    -moz-appearance: textfield !important;
+}
+
+.gradio-container input[type="number"]::-webkit-inner-spin-button,
+.gradio-container input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    display: none !important;
+    margin: 0 !important;
+}
+
 .command-cell label:has(input[type="radio"]) {
     display: flex !important;
     align-items: center !important;
@@ -1717,6 +1730,61 @@ gradio-app {
 .dataset-select [role="combobox"] {
     overflow: hidden !important;
     text-overflow: ellipsis !important;
+}
+
+.dataset-button-radio {
+    width: 100%;
+}
+
+.dataset-button-radio .wrap,
+.dataset-button-radio .form,
+.dataset-button-radio .container,
+.dataset-button-radio [role="radiogroup"],
+.dataset-button-radio [data-testid="radio-group"] {
+    overflow: visible !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+.dataset-button-radio [role="radiogroup"],
+.dataset-button-radio [data-testid="radio-group"],
+.dataset-button-radio .wrap > div {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px !important;
+}
+
+.dataset-button-radio .wrap,
+.dataset-button-radio .wrap > div,
+.dataset-button-radio [role="radiogroup"],
+.dataset-button-radio [data-testid="radio-group"] {
+    width: 100% !important;
+}
+
+.dataset-button-radio label:has(input[type="radio"]) {
+    flex: 0 0 calc(50% - 4px) !important;
+    width: calc(50% - 4px) !important;
+    max-width: calc(50% - 4px) !important;
+}
+
+.dataset-button-radio label:has(input[type="radio"]) {
+    min-height: 38px !important;
+    padding: 8px 9px 8px 34px !important;
+    justify-content: flex-start !important;
+    font-size: 0.72rem !important;
+    white-space: nowrap !important;
+}
+
+.dataset-button-radio label:has(input[type="radio"])::before {
+    left: 11px !important;
+    width: 16px !important;
+    height: 16px !important;
+}
+
+.dataset-button-radio label:has(input[type="radio"]:checked)::after {
+    left: 16px !important;
+    width: 6px !important;
+    height: 6px !important;
 }
 
 /* M5.8 global cleanup: keep Gradio wrappers invisible outside real surfaces. */
@@ -2035,6 +2103,25 @@ gradio-app {
     white-space: nowrap !important;
 }
 
+.dataset-button-radio {
+    width: 100%;
+}
+
+.dataset-button-radio [role="radiogroup"],
+.dataset-button-radio [data-testid="radio-group"],
+.dataset-button-radio .wrap > div {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px !important;
+}
+
+.dataset-button-radio .wrap,
+.dataset-button-radio .wrap > div,
+.dataset-button-radio [role="radiogroup"],
+.dataset-button-radio [data-testid="radio-group"] {
+    width: 100% !important;
+}
+
 .route-geometry-card {
     width: 100%;
     min-height: 360px;
@@ -2178,7 +2265,7 @@ gradio-app {
 
 BOX_PREVIEW_HEADERS = ["Box", "Dimensions", "Volume"]
 ROUTE_PREVIEW_HEADERS = ["Route / stop", "Customers", "Distance / location", "Boxes", "Status"]
-BUILD_LABEL = "M5.10 live demo presentation fix build"
+BUILD_LABEL = "M5.11 dataset button cleanup build"
 
 
 def default_demo_label() -> str:
@@ -2188,7 +2275,7 @@ def default_demo_label() -> str:
 def build_badge_html() -> str:
     return f"""
     <div class="build-badge">
-        <span>{BUILD_LABEL} | fresh-server validation target: 127.0.0.1:7869+</span>
+        <span>{BUILD_LABEL} | fresh-server validation target: 127.0.0.1:7873+</span>
         <span>No baseline models | Proposed GA only | Quick defaults 10 x 2</span>
     </div>
     """
@@ -3097,12 +3184,12 @@ def build_app() -> gr.Blocks:
                             show_label=False,
                         )
                         gr.Markdown("Demo dataset", elem_classes=["field-heading"])
-                        demo_dataset = gr.Dropdown(
+                        demo_dataset = gr.Radio(
                             choices=demo_dataset_options(),
                             value=default_dataset,
                             label=None,
                             show_label=False,
-                            elem_classes=["dataset-select"],
+                            elem_classes=["dataset-button-radio"],
                         )
                         upload_file = gr.File(
                             label="Dataset file",
