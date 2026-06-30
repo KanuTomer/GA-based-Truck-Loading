@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 import base64
+import csv
+import io
+import json
 from functools import lru_cache
 from html import escape
 from pathlib import Path
@@ -25,6 +28,7 @@ from truck_loading.data import (
     load_uploaded_dataset,
     validate_data_quality,
 )
+from truck_loading.ga import ProposedGAConfig, run_proposed_ga
 from truck_loading.presets import (
     ASSET_ROOT,
     default_variant_name,
@@ -35,10 +39,11 @@ from truck_loading.presets import (
     preview_path_for,
     variant_names,
 )
+from truck_loading.visualization import packing_viewer_html, packing_viewer_placeholder
 
 
 CUSTOM_CSS = """
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600;700&family=Playfair+Display:wght@600;700;800&family=Space+Grotesk:wght@500;600;700;800&display=swap');
 
 :root {
     --bg-ink: #111417;
@@ -52,7 +57,8 @@ CUSTOM_CSS = """
     --coral: #ff6b5f;
     --steel: #8aa0b4;
     --font-display: "Playfair Display", "Soria", Georgia, serif;
-    --font-body: Inter, "Segoe UI", Arial, sans-serif;
+    --font-body: "Space Grotesk", Inter, "Segoe UI", Arial, sans-serif;
+    --font-mono: "IBM Plex Mono", "JetBrains Mono", Consolas, monospace;
 }
 
 body,
@@ -522,6 +528,7 @@ main,
     color: #151b20;
     font-size: 1.45rem;
     font-weight: 900;
+    font-family: var(--font-mono);
 }
 
 .metric-note {
@@ -542,6 +549,13 @@ main,
     background-size: 100% 32px;
     background-position: 0 24px, 0 70px, 0 116px, 0 162px;
     background-repeat: no-repeat;
+}
+
+.convergence-svg {
+    width: 100%;
+    min-height: 180px;
+    border: 1px solid rgba(17, 20, 23, 0.1);
+    border-radius: 12px;
 }
 
 .result-panel {
@@ -668,6 +682,61 @@ main,
     line-height: 1.35;
 }
 
+.download-chip.ready {
+    border-style: solid;
+    border-color: rgba(34, 211, 197, 0.42);
+    background: rgba(34, 211, 197, 0.08);
+    opacity: 1;
+}
+
+.download-chip a {
+    color: #116b66;
+    font-weight: 900;
+    text-decoration: none;
+}
+
+.packing-viewer-section {
+    margin-top: 16px;
+}
+
+.packing-viewer-frame {
+    width: 100%;
+    min-height: 620px;
+    border: 1px solid rgba(17, 20, 23, 0.12);
+    border-radius: 14px;
+    background: #0b0f12;
+    overflow: hidden;
+}
+
+.packing-viewer-empty {
+    min-height: 280px;
+    display: grid;
+    align-content: center;
+    border: 1px dashed rgba(17, 20, 23, 0.18);
+    border-radius: 14px;
+    background:
+        radial-gradient(circle at 22% 18%, rgba(34, 211, 197, 0.1), transparent 28%),
+        #f8fbfb;
+    padding: 24px;
+}
+
+.viewer-kicker {
+    color: #178b83;
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.viewer-title {
+    margin-top: 8px;
+    color: #141a1f;
+    font-family: var(--font-display);
+    font-size: 2rem;
+    font-weight: 800;
+    line-height: 1.05;
+}
+
 @media (max-width: 900px) {
     .hero-strip,
     .metric-grid,
@@ -737,7 +806,7 @@ main,
 
 
 BOX_PREVIEW_HEADERS = ["Box", "Dimensions", "Volume"]
-ROUTE_PREVIEW_HEADERS = ["Stop", "Customer", "Location", "Boxes", "Status"]
+ROUTE_PREVIEW_HEADERS = ["Route / stop", "Customers", "Distance / location", "Boxes", "Status"]
 
 
 def default_demo_label() -> str:
@@ -829,6 +898,11 @@ def selected_truck_dimensions(truck_name: str) -> tuple[float, float, float]:
     return (float(preset.length_mm), float(preset.width_mm), float(preset.height_mm))
 
 
+def selected_truck_container(truck_name: str) -> dict[str, float]:
+    length, width, height = selected_truck_dimensions(truck_name)
+    return {"L": length, "W": width, "H": height}
+
+
 def validation_results(bundle: DatasetBundle | None, truck_name: str):
     if bundle is None:
         return []
@@ -888,11 +962,33 @@ def dashboard_header_html(bundle: DatasetBundle | None, truck_name: str, variant
             <div class="result-kicker">Visual results dashboard</div>
             <div class="result-title">Run story board</div>
             <div class="result-copy">
-                A polished preview of the metrics, route geometry, and downloads that will be filled
-                after the proposed GA execution milestone.
+                Validate the dataset, run the proposed GA, then inspect route metrics and animated
+                truck-loading placements.
             </div>
         </div>
         <div class="result-pill">{escape(dataset_name)} | {escape(truck_name)} | {escape(variant_name)}</div>
+    </div>
+    """
+
+
+def run_dashboard_header_html(
+    bundle: DatasetBundle,
+    truck_name: str,
+    variant_name: str,
+    run_result: dict,
+) -> str:
+    best_info = run_result["best_info"]
+    return f"""
+    <div class="result-header">
+        <div>
+            <div class="result-kicker">Proposed GA completed</div>
+            <div class="result-title">Packed route result</div>
+            <div class="result-copy">
+                The proposed GA produced {best_info["route_count"]} route(s), then the real
+                packing engine generated 3D placements for the selected truck.
+            </div>
+        </div>
+        <div class="result-pill">{escape(bundle.summary.instance_name)} | {escape(truck_name)} | {escape(variant_name)}</div>
     </div>
     """
 
@@ -909,7 +1005,7 @@ def result_metrics_html(
             ("Customers", "Pending", "Waiting for dataset"),
             ("Boxes", "Pending", "Waiting for dataset"),
             ("Selected truck", truck_name, variant_name),
-            ("Proposed GA", "Pending", "Execution arrives in a later milestone"),
+            ("Proposed GA", "Blocked", "Waiting for a valid dataset"),
         ]
     else:
         results = validation_results(bundle, truck_name)
@@ -924,9 +1020,32 @@ def result_metrics_html(
             ("Boxes", f"{bundle.summary.box_count}", f"Warnings: {warnings}"),
             ("Truck fill", f"{truck_fill:.1f}%", f"{format_liters(bundle.summary.total_box_volume_mm3)} total box volume"),
             ("Selected truck", preset.name, variant_name),
-            ("Proposed GA", "Pending", "No solver execution in M4"),
+            ("Proposed GA", "Ready" if not blocked else "Blocked", "Runs in this milestone"),
         ]
 
+    items = "\n".join(
+        f"""
+        <div class="metric-card">
+            <div class="metric-label">{escape(label)}</div>
+            <div class="metric-value">{escape(value)}</div>
+            <div class="metric-note">{escape(note)}</div>
+        </div>
+        """
+        for label, value, note in cards
+    )
+    return f'<div class="metric-grid">{items}</div>'
+
+
+def run_metrics_html(run_result: dict, truck_name: str, variant_name: str) -> str:
+    best_info = run_result["best_info"]
+    cards = [
+        ("Best score", f"{run_result['best_score']:.1f}", "Lower is better"),
+        ("Routes", f"{best_info['route_count']}", f"{best_info['feasible_routes']} feasible"),
+        ("Packed boxes", f"{best_info['boxes_packed']}/{best_info['boxes_total']}", f"Unpacked: {best_info['unpacked_boxes']}"),
+        ("Truck fill", f"{best_info['avg_fill_rate'] * 100:.1f}%", f"Min route fill: {best_info['min_fill_rate'] * 100:.1f}%"),
+        ("Distance", f"{best_info['total_distance']:.1f}", "Coordinate-space distance"),
+        ("Runtime", f"{run_result['runtime_seconds']:.1f}s", f"{truck_name} | {variant_name}"),
+    ]
     items = "\n".join(
         f"""
         <div class="metric-card">
@@ -960,6 +1079,25 @@ def route_preview_rows(bundle: DatasetBundle | None, limit: int = 8) -> list[lis
     return rows
 
 
+def route_result_rows(run_result: dict) -> list[list[str]]:
+    rows = []
+    for route in run_result["best_info"]["routes"]:
+        customers = " -> ".join(route["customer_labels"][:4])
+        if len(route["customer_labels"]) > 4:
+            customers += " -> ..."
+        status = "Packed" if route["feasible"] else f"{len(route['unpacked_box_ids'])} unpacked"
+        rows.append(
+            [
+                f"Route {route['route_index']}",
+                customers,
+                f"{route['distance']:.1f}",
+                f"{route['boxes_packed']}/{route['boxes_total']}",
+                status,
+            ]
+        )
+    return rows
+
+
 def coordinates_label(customer: dict) -> str:
     try:
         return f"{float(customer['x']):.1f}, {float(customer['y']):.1f}"
@@ -967,7 +1105,7 @@ def coordinates_label(customer: dict) -> str:
         return "Coordinates unavailable"
 
 
-def route_plot_figure(bundle: DatasetBundle | None):
+def route_plot_figure(bundle: DatasetBundle | None, run_result: dict | None = None):
     fig, ax = plt.subplots(figsize=(7.2, 4.2), facecolor="#f8fbfb")
     ax.set_facecolor("#f8fbfb")
     ax.grid(True, color="#dce5e8", linewidth=0.8)
@@ -1004,7 +1142,28 @@ def route_plot_figure(bundle: DatasetBundle | None):
         dx, dy = zip(*depot_points, strict=True)
         ax.scatter(dx, dy, s=95, marker="s", c="#ff6b5f", edgecolors="#111417", linewidths=0.7, label="Depot")
 
-    ax.set_title(f"Customer layout preview - {bundle.summary.instance_name}", color="#141a1f", fontsize=11, weight="bold")
+    if run_result is not None and depot_points:
+        depot = depot_points[0]
+        customer_lookup = {
+            str(customer.get("customer_id", customer.get("id"))): customer
+            for customer in bundle.data["customers"]
+            if not customer.get("is_depot") and customer.get("customer_id", customer.get("id")) is not None
+        }
+        route_colors = ["#22d3c5", "#f7c948", "#ff6b5f", "#8aa0b4", "#7c3aed", "#16a34a"]
+        for route in run_result["best_info"]["routes"][:8]:
+            points = [depot]
+            for customer_id in route["route"]:
+                customer = customer_lookup.get(str(customer_id))
+                if customer is not None:
+                    points.append((float(customer.get("x", 0)), float(customer.get("y", 0))))
+            points.append(depot)
+            if len(points) > 2:
+                xs, ys = zip(*points, strict=True)
+                color = route_colors[(route["route_index"] - 1) % len(route_colors)]
+                ax.plot(xs, ys, color=color, linewidth=1.4, alpha=0.72)
+
+    title_prefix = "Proposed GA route geometry" if run_result is not None else "Customer layout preview"
+    ax.set_title(f"{title_prefix} - {bundle.summary.instance_name}", color="#141a1f", fontsize=11, weight="bold")
     ax.set_xlabel("X coordinate", color="#45545f")
     ax.set_ylabel("Y coordinate", color="#45545f")
     ax.legend(frameon=False, loc="best")
@@ -1020,6 +1179,36 @@ def convergence_placeholder_html(bundle: DatasetBundle | None = None) -> str:
         Future convergence trace for {escape(dataset_name)}. The chart remains a styled placeholder until
         proposed-GA execution is connected.
     </p>
+    """
+
+
+def convergence_result_html(run_result: dict) -> str:
+    history = run_result.get("history") or []
+    if not history:
+        return '<div class="dataset-warning">No convergence history was produced.</div>'
+
+    width = 720
+    height = 220
+    padding = 28
+    low = min(history)
+    high = max(history)
+    spread = high - low or 1.0
+    points = []
+    for index, value in enumerate(history):
+        x = padding + (width - padding * 2) * (index / max(len(history) - 1, 1))
+        y = height - padding - (height - padding * 2) * ((value - low) / spread)
+        points.append(f"{x:.1f},{y:.1f}")
+    polyline = " ".join(points)
+    return f"""
+    <svg viewBox="0 0 {width} {height}" class="convergence-svg" role="img" aria-label="Proposed GA convergence chart">
+        <rect width="{width}" height="{height}" rx="12" fill="#f8fbfb" />
+        <path d="M {padding} {height - padding} H {width - padding}" stroke="#d5e0e4" stroke-width="1" />
+        <path d="M {padding} {padding} V {height - padding}" stroke="#d5e0e4" stroke-width="1" />
+        <polyline points="{polyline}" fill="none" stroke="#22d3c5" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+        <circle cx="{points[-1].split(',')[0]}" cy="{points[-1].split(',')[1]}" r="6" fill="#ff6b5f" />
+        <text x="{padding}" y="20" fill="#141a1f" font-size="13" font-weight="800">Best score by generation</text>
+        <text x="{padding}" y="{height - 8}" fill="#657480" font-size="11">Start {history[0]:.1f} | Best {history[-1]:.1f}</text>
+    </svg>
     """
 
 
@@ -1041,6 +1230,71 @@ def download_placeholder_html(bundle: DatasetBundle | None, blocked: bool) -> st
         for title, note in chips
     )
     return f'<div class="download-grid">{items}</div>'
+
+
+def downloads_result_html(bundle: DatasetBundle, run_result: dict, truck_name: str, variant_name: str) -> str:
+    normalized = {
+        "instance_name": bundle.summary.instance_name,
+        "truck": {
+            "class": truck_name,
+            "body_style": variant_name,
+            "container": selected_truck_container(truck_name),
+        },
+        "dataset": bundle.data,
+    }
+    metrics_rows = [
+        ["metric", "value"],
+        ["best_score", f"{run_result['best_score']:.6f}"],
+        ["runtime_seconds", f"{run_result['runtime_seconds']:.6f}"],
+        ["route_count", str(run_result["best_info"]["route_count"])],
+        ["feasible_routes", str(run_result["best_info"]["feasible_routes"])],
+        ["boxes_total", str(run_result["best_info"]["boxes_total"])],
+        ["boxes_packed", str(run_result["best_info"]["boxes_packed"])],
+        ["avg_fill_rate", f"{run_result['best_info']['avg_fill_rate']:.6f}"],
+    ]
+    csv_buffer = io.StringIO()
+    writer = csv.writer(csv_buffer)
+    writer.writerows(metrics_rows)
+    chips = [
+        ("Normalized dataset JSON", "dataset.json", json.dumps(normalized, indent=2)),
+        ("Result JSON", "proposed-ga-result.json", json.dumps(run_result, indent=2)),
+        ("Metrics CSV", "metrics.csv", csv_buffer.getvalue()),
+    ]
+    items = "\n".join(
+        f"""
+        <div class="download-chip ready">
+            <div class="download-chip-title">{escape(title)}</div>
+            <div class="download-chip-note">
+                <a download="{escape(filename)}" href="{_data_download_uri(content, 'text/csv' if filename.endswith('.csv') else 'application/json')}">
+                    Download {escape(filename)}
+                </a>
+            </div>
+        </div>
+        """
+        for title, filename, content in chips
+    )
+    return f'<div class="download-grid">{items}</div>'
+
+
+def _data_download_uri(content: str, mime_type: str) -> str:
+    encoded = base64.b64encode(content.encode("utf-8")).decode("ascii")
+    return f"data:{mime_type};base64,{encoded}"
+
+
+def viewer_payload(run_result: dict, truck_name: str, variant_name: str) -> dict:
+    preset = get_preset(truck_name)
+    routes = [
+        route
+        for route in run_result["best_info"]["routes"]
+        if route.get("placements")
+    ]
+    if not routes:
+        routes = run_result["best_info"]["routes"][:1]
+    return {
+        "truck": {"name": preset.name, "body_style": variant_name},
+        "container": selected_truck_container(truck_name),
+        "routes": routes,
+    }
 
 
 def dashboard_outputs(
@@ -1066,6 +1320,7 @@ def dashboard_outputs(
             route_plot_figure(None),
             convergence_placeholder_html(None),
             download_placeholder_html(None, blocked=True),
+            packing_viewer_placeholder(),
             gr.update(interactive=False),
         )
 
@@ -1083,6 +1338,7 @@ def dashboard_outputs(
         route_plot_figure(bundle),
         convergence_placeholder_html(bundle),
         download_placeholder_html(bundle, blocked=blocked),
+        packing_viewer_placeholder(),
         gr.update(interactive=not blocked),
     )
 
@@ -1196,42 +1452,85 @@ def update_body_style(source: str, demo_label: str, uploaded_file, truck_name: s
     )
 
 
-def run_placeholder(source: str, demo_label: str, uploaded_file, truck_name: str, variant_name: str) -> str:
+def run_visual_demo(
+    source: str,
+    demo_label: str,
+    uploaded_file,
+    truck_name: str,
+    variant_name: str,
+    population_size: int | float,
+    generations: int | float,
+):
     preset = get_preset(truck_name)
     variant = preset.get_variant(variant_name)
-    dims = format_truck_dimensions(preset.length_mm, preset.width_mm, preset.height_mm)
     try:
         bundle = current_dataset_bundle(source, demo_label, uploaded_file)
-        dataset_label = bundle.summary.instance_name if bundle else "Awaiting dataset"
     except DatasetError as exc:
-        dataset_label = f"Unavailable ({exc})"
-        return (
+        status = (
             "### Run blocked by validation\n"
             f"Dataset source: **{source}**\n\n"
-            f"Dataset: **{dataset_label}**\n\n"
-            "Resolve the dataset issue before preparing the future proposed-GA run."
+            f"Dataset: **Unavailable ({exc})**\n\n"
+            "Resolve the dataset issue before running the proposed GA."
+        )
+        return (
+            status,
+            dashboard_header_html(None, truck_name, variant_name),
+            result_metrics_html(None, truck_name, variant_name, error=str(exc)),
+            [],
+            route_plot_figure(None),
+            convergence_placeholder_html(None),
+            download_placeholder_html(None, blocked=True),
+            packing_viewer_placeholder(),
         )
 
-    results = validation_results(bundle, truck_name) if bundle else []
+    results = validation_results(bundle, truck_name)
     if has_blocking_results(results):
         blocking_titles = ", ".join(result.title for result in results if result.blocking)
-        return (
+        status = (
             "### Run blocked by validation\n"
             f"Dataset source: **{source}**\n\n"
-            f"Dataset: **{dataset_label}**\n\n"
+            f"Dataset: **{bundle.summary.instance_name}**\n\n"
             f"Blocking checks: **{blocking_titles}**\n\n"
-            "Fix the dataset before the proposed-GA execution milestone can use it."
+            "Fix the dataset before the proposed GA can produce route placements."
+        )
+        return (
+            status,
+            dashboard_header_html(bundle, truck_name, variant_name),
+            result_metrics_html(bundle, truck_name, variant_name),
+            route_preview_rows(bundle),
+            route_plot_figure(bundle),
+            convergence_placeholder_html(bundle),
+            download_placeholder_html(bundle, blocked=True),
+            packing_viewer_placeholder(),
         )
 
-    return (
-        "### Proposed GA run queued for a later milestone\n"
-        f"Dataset source: **{source}**\n\n"
-        f"Dataset: **{dataset_label}**\n\n"
+    config = ProposedGAConfig.capped(population_size, generations)
+    run_result = run_proposed_ga(
+        bundle.data,
+        selected_truck_dimensions(truck_name),
+        config=config,
+    )
+    best_info = run_result["best_info"]
+    status = (
+        "### Proposed GA run complete\n"
+        f"Dataset: **{bundle.summary.instance_name}**\n\n"
         f"Truck class: **{preset.name}**\n\n"
-        f"Indian-equivalent class: **{preset.indian_equivalent}**\n\n"
         f"Body style: **{variant.name}**\n\n"
-        f"Internal load space: **{dims}**\n\n"
-        "M4 validates readiness and previews the results dashboard; solver execution and animated box loading remain later milestones."
+        f"Routes: **{best_info['route_count']}** | "
+        f"Packed boxes: **{best_info['boxes_packed']}/{best_info['boxes_total']}** | "
+        f"Average fill: **{best_info['avg_fill_rate'] * 100:.1f}%**\n\n"
+        f"Runtime: **{run_result['runtime_seconds']:.1f}s** with "
+        f"population **{config.population_size}** and **{config.generations}** generations."
+    )
+    return (
+        status,
+        run_dashboard_header_html(bundle, truck_name, variant_name, run_result),
+        run_metrics_html(run_result, truck_name, variant_name),
+        route_result_rows(run_result),
+        route_plot_figure(bundle, run_result=run_result),
+        convergence_result_html(run_result),
+        downloads_result_html(bundle, run_result, truck_name, variant_name),
+        packing_viewer_html(viewer_payload(run_result, truck_name, variant_name)),
     )
 
 
@@ -1409,24 +1708,24 @@ def build_app() -> gr.Blocks:
                     )
 
                     with gr.Row():
-                        gr.Slider(
-                            20,
-                            100,
+                        population_slider = gr.Slider(
+                            10,
+                            60,
                             value=40,
                             step=10,
                             label="Population",
-                            interactive=False,
+                            interactive=True,
                         )
-                        gr.Slider(
-                            10,
-                            100,
+                        generations_slider = gr.Slider(
+                            2,
+                            60,
                             value=50,
                             step=10,
                             label="Generations",
-                            interactive=False,
+                            interactive=True,
                         )
 
-                    run_button = gr.Button("Prepare visual run", variant="primary")
+                    run_button = gr.Button("Run proposed GA", variant="primary")
                     run_status = gr.Markdown(
                         default_dashboard[3],
                         elem_classes=["run-status"],
@@ -1473,6 +1772,10 @@ def build_app() -> gr.Blocks:
                         gr.Markdown("### Downloads")
                         downloads_placeholder = gr.HTML(default_dashboard[10])
 
+                with gr.Column(elem_classes=["packing-viewer-section"]):
+                    gr.Markdown("### Animated 3D loading viewer")
+                    packing_viewer = gr.HTML(default_dashboard[11])
+
         dataset_source.change(
             fn=update_dataset_source,
             inputs=[dataset_source, demo_dataset, upload_file, truck_preset, truck_variant],
@@ -1490,6 +1793,7 @@ def build_app() -> gr.Blocks:
                 route_plot,
                 convergence_preview,
                 downloads_placeholder,
+                packing_viewer,
                 run_button,
             ],
         )
@@ -1508,6 +1812,7 @@ def build_app() -> gr.Blocks:
                 route_plot,
                 convergence_preview,
                 downloads_placeholder,
+                packing_viewer,
                 run_button,
             ],
         )
@@ -1526,6 +1831,7 @@ def build_app() -> gr.Blocks:
                 route_plot,
                 convergence_preview,
                 downloads_placeholder,
+                packing_viewer,
                 run_button,
             ],
         )
@@ -1546,6 +1852,7 @@ def build_app() -> gr.Blocks:
                 route_plot,
                 convergence_preview,
                 downloads_placeholder,
+                packing_viewer,
                 run_button,
             ],
         )
@@ -1563,13 +1870,31 @@ def build_app() -> gr.Blocks:
                 route_plot,
                 convergence_preview,
                 downloads_placeholder,
+                packing_viewer,
                 run_button,
             ],
         )
         run_button.click(
-            fn=run_placeholder,
-            inputs=[dataset_source, demo_dataset, upload_file, truck_preset, truck_variant],
-            outputs=run_status,
+            fn=run_visual_demo,
+            inputs=[
+                dataset_source,
+                demo_dataset,
+                upload_file,
+                truck_preset,
+                truck_variant,
+                population_slider,
+                generations_slider,
+            ],
+            outputs=[
+                run_status,
+                dashboard_header,
+                result_metrics,
+                route_summary,
+                route_plot,
+                convergence_preview,
+                downloads_placeholder,
+                packing_viewer,
+            ],
         )
 
     return demo

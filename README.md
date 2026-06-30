@@ -32,6 +32,6 @@ license is included under `assets/kenney-car-kit/License.txt`.
 
 ## Development Status
 
-Milestone 4 adds a visual results dashboard shell, dataset readiness validation,
-route geometry preview, typography polish, and download placeholders. Solver
-execution and animated truck loading remain later milestones.
+Milestone 5 connects a capped proposed-GA runtime, real rotation-enabled packing
+placements, downloadable run artifacts, and an animated procedural 3D truck
+loading viewer.
