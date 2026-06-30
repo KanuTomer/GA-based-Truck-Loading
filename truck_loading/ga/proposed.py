@@ -41,6 +41,7 @@ class ProposedGAConfig:
     generations: int = 50
     seed: int = 42
     max_boxes_per_route: int = 500
+    estimated_fill_limit: float = 0.92
     crossover_probability: float = 0.9
     mutation_probability: float = 0.22
 
@@ -50,6 +51,46 @@ class ProposedGAConfig:
             population_size=max(10, min(60, int(population_size))),
             generations=max(2, min(60, int(generations))),
         )
+
+
+@dataclass
+class CustomerLoadStats:
+    boxes: list[dict[str, Any]]
+    box_count: int
+    volume: float
+    individually_fits: bool
+
+
+class PackingCache:
+    """Memoize exact route packing so repeated final routes are cheap."""
+
+    def __init__(self, container: dict[str, float]) -> None:
+        self.container = container
+        self._results: dict[tuple[tuple[int, int, int], tuple[str, ...]], dict[str, Any]] = {}
+        self.hits = 0
+        self.misses = 0
+        self.packing_time_seconds = 0.0
+
+    def best_result(self, boxes: list[dict[str, Any]]) -> dict[str, Any]:
+        key = self._key(boxes)
+        if key in self._results:
+            self.hits += 1
+            return self._results[key]
+
+        self.misses += 1
+        started = time.perf_counter()
+        result = _best_packing_result_uncached(self.container, boxes)
+        self.packing_time_seconds += time.perf_counter() - started
+        self._results[key] = result
+        return result
+
+    def _key(self, boxes: list[dict[str, Any]]) -> tuple[tuple[int, int, int], tuple[str, ...]]:
+        dims = (
+            int(round(float(self.container["L"]))),
+            int(round(float(self.container["W"]))),
+            int(round(float(self.container["H"]))),
+        )
+        return dims, tuple(str(box["box_id"]) for box in boxes)
 
 
 def run_proposed_ga(
@@ -71,6 +112,8 @@ def run_proposed_ga(
         "W": float(truck_dimensions_mm[1]),
         "H": float(truck_dimensions_mm[2]),
     }
+    customer_stats = _build_customer_load_stats(customers, box_map, container)
+    packing_cache = PackingCache(container)
 
     if not customer_ids:
         raise ValueError("Proposed GA needs at least one real customer.")
@@ -80,15 +123,28 @@ def run_proposed_ga(
     best_score = float("inf")
     best_info: dict[str, Any] | None = None
     history: list[float] = []
+    estimated_evaluations = 0
+    search_started = time.perf_counter()
 
     for _generation in range(config.generations):
         scored = [
             (
-                _score_order(order, depot, customer_map, box_map, container, config),
+                _score_order(
+                    order,
+                    depot,
+                    customer_map,
+                    box_map,
+                    container,
+                    config,
+                    customer_stats=customer_stats,
+                    exact=False,
+                    packing_cache=packing_cache,
+                ),
                 order,
             )
             for order in population
         ]
+        estimated_evaluations += len(scored)
         scored.sort(key=lambda item: item[0][0])
         score, info = scored[0][0]
         if score < best_score:
@@ -110,12 +166,42 @@ def run_proposed_ga(
             next_population.append(child)
         population = next_population
 
+    ga_search_time = time.perf_counter() - search_started
+
     if best_order is None or best_info is None:
         best_order = customer_ids
-        best_score, best_info = _score_order(best_order, depot, customer_map, box_map, container, config)
+        best_score, best_info = _score_order(
+            best_order,
+            depot,
+            customer_map,
+            box_map,
+            container,
+            config,
+            customer_stats=customer_stats,
+            exact=False,
+            packing_cache=packing_cache,
+        )
 
-    best_score, best_info = _score_order(best_order, depot, customer_map, box_map, container, config)
+    best_score, best_info = _score_order(
+        best_order,
+        depot,
+        customer_map,
+        box_map,
+        container,
+        config,
+        customer_stats=customer_stats,
+        exact=True,
+        packing_cache=packing_cache,
+    )
     runtime = time.perf_counter() - started
+    diagnostics = {
+        "ga_search_time_seconds": ga_search_time,
+        "exact_packing_time_seconds": packing_cache.packing_time_seconds,
+        "packing_cache_hits": packing_cache.hits,
+        "packing_cache_misses": packing_cache.misses,
+        "estimated_route_evaluations": estimated_evaluations,
+        "exact_route_evaluations": packing_cache.misses,
+    }
     return {
         "model": "proposed_ga",
         "best_order": best_order,
@@ -123,10 +209,12 @@ def run_proposed_ga(
         "best_info": best_info,
         "history": history,
         "runtime_seconds": runtime,
+        "diagnostics": diagnostics,
         "config": {
             "population_size": config.population_size,
             "generations": config.generations,
             "max_boxes_per_route": config.max_boxes_per_route,
+            "estimated_fill_limit": config.estimated_fill_limit,
             "seed": config.seed,
         },
     }
@@ -167,8 +255,22 @@ def _score_order(
     box_map: dict[str, dict[str, Any]],
     container: dict[str, float],
     config: ProposedGAConfig,
+    customer_stats: dict[Any, CustomerLoadStats] | None = None,
+    exact: bool = True,
+    packing_cache: PackingCache | None = None,
 ) -> tuple[float, dict[str, Any]]:
-    routes = _decode_by_packability(order, customer_map, box_map, container, config.max_boxes_per_route)
+    customer_stats = customer_stats or _build_customer_load_stats(list(customer_map.values()), box_map, container)
+    if exact:
+        routes = _decode_by_exact_packability(
+            order,
+            customer_map,
+            box_map,
+            container,
+            config.max_boxes_per_route,
+            packing_cache,
+        )
+    else:
+        routes = _decode_by_estimated_capacity(order, customer_stats, container, config)
     route_details = []
     total_distance = 0.0
     total_boxes = 0
@@ -176,7 +278,10 @@ def _score_order(
     feasible_routes = 0
 
     for route_index, route in enumerate(routes, start=1):
-        detail = _evaluate_route(route_index, route, depot, customer_map, box_map, container)
+        if exact:
+            detail = _evaluate_route(route_index, route, depot, customer_map, box_map, container, packing_cache)
+        else:
+            detail = _estimate_route(route_index, route, depot, customer_map, customer_stats, container)
         route_details.append(detail)
         total_distance += detail["distance"]
         total_boxes += detail["boxes_total"]
@@ -229,12 +334,56 @@ def _decode_by_box_count(order: list[Any], customer_box_count: dict[Any, int], m
     return routes
 
 
-def _decode_by_packability(
+def _decode_by_estimated_capacity(
+    order: list[Any],
+    customer_stats: dict[Any, CustomerLoadStats],
+    container: dict[str, float],
+    config: ProposedGAConfig,
+) -> list[list[Any]]:
+    routes: list[list[Any]] = []
+    current: list[Any] = []
+    current_box_count = 0
+    current_volume = 0.0
+    container_volume = container["L"] * container["W"] * container["H"]
+    fill_limit_volume = container_volume * config.estimated_fill_limit
+
+    for customer_id in order:
+        stats = customer_stats.get(customer_id, CustomerLoadStats([], 0, 0.0, True))
+        candidate_box_count = current_box_count + stats.box_count
+        candidate_volume = current_volume + stats.volume
+        exceeds_guard = candidate_box_count > config.max_boxes_per_route
+        exceeds_estimated_capacity = candidate_volume > fill_limit_volume
+        customer_unfit = not stats.individually_fits
+
+        if current and (exceeds_guard or exceeds_estimated_capacity):
+            routes.append(current)
+            current = [customer_id]
+            current_box_count = stats.box_count
+            current_volume = stats.volume
+            continue
+
+        current.append(customer_id)
+        current_box_count = candidate_box_count
+        current_volume = candidate_volume
+
+        if customer_unfit:
+            routes.append(current)
+            current = []
+            current_box_count = 0
+            current_volume = 0.0
+
+    if current:
+        routes.append(current)
+    return routes
+
+
+def _decode_by_exact_packability(
     order: list[Any],
     customer_map: dict[Any, dict[str, Any]],
     box_map: dict[str, dict[str, Any]],
     container: dict[str, float],
     max_boxes_per_route: int,
+    packing_cache: PackingCache | None = None,
 ) -> list[list[Any]]:
     routes: list[list[Any]] = []
     current: list[Any] = []
@@ -244,7 +393,7 @@ def _decode_by_packability(
         customer_boxes = _boxes_for_customers([customer_id], customer_map, box_map)
         candidate_boxes = current_boxes + customer_boxes
         exceeds_guard = len(candidate_boxes) > max_boxes_per_route
-        candidate_result = _best_packing_result(container, candidate_boxes)
+        candidate_result = _best_packing_result(container, candidate_boxes, packing_cache)
         candidate_fits = candidate_result["placed_count"] == len(candidate_boxes)
 
         if current and (exceeds_guard or not candidate_fits):
@@ -259,6 +408,34 @@ def _decode_by_packability(
     if current:
         routes.append(current)
     return routes
+
+
+def _build_customer_load_stats(
+    customers: list[dict[str, Any]],
+    box_map: dict[str, dict[str, Any]],
+    container: dict[str, float],
+) -> dict[Any, CustomerLoadStats]:
+    stats: dict[Any, CustomerLoadStats] = {}
+    for customer in customers:
+        customer_id = customer.get("customer_id", customer.get("id"))
+        boxes = []
+        for box_id in customer.get("assigned_boxes", []):
+            box = box_map.get(str(box_id))
+            if box is not None:
+                boxes.append(box)
+        stats[customer_id] = CustomerLoadStats(
+            boxes=boxes,
+            box_count=len(boxes),
+            volume=sum(_box_volume(box) for box in boxes),
+            individually_fits=all(_box_fits_container(box, container) for box in boxes),
+        )
+    return stats
+
+
+def _box_fits_container(box: dict[str, Any], container: dict[str, float]) -> bool:
+    dims = (float(box["length"]), float(box["width"]), float(box["height"]))
+    container_dims = sorted((container["L"], container["W"], container["H"]))
+    return all(box_dim <= container_dim for box_dim, container_dim in zip(sorted(dims), container_dims))
 
 
 def _boxes_for_customers(
@@ -286,7 +463,17 @@ def _ordered_boxes(strategy: str, boxes: list[dict[str, Any]]) -> list[dict[str,
     return list(boxes)
 
 
-def _best_packing_result(container: dict[str, float], boxes: list[dict[str, Any]]) -> dict[str, Any]:
+def _best_packing_result(
+    container: dict[str, float],
+    boxes: list[dict[str, Any]],
+    packing_cache: PackingCache | None = None,
+) -> dict[str, Any]:
+    if packing_cache is not None:
+        return packing_cache.best_result(boxes)
+    return _best_packing_result_uncached(container, boxes)
+
+
+def _best_packing_result_uncached(container: dict[str, float], boxes: list[dict[str, Any]]) -> dict[str, Any]:
     if not boxes:
         return {
             "placements": [],
@@ -322,6 +509,7 @@ def _evaluate_route(
     customer_map: dict[Any, dict[str, Any]],
     box_map: dict[str, dict[str, Any]],
     container: dict[str, float],
+    packing_cache: PackingCache | None = None,
 ) -> dict[str, Any]:
     box_to_customer: dict[str, dict[str, Any]] = {}
     for customer_id in route:
@@ -330,7 +518,7 @@ def _evaluate_route(
             box_to_customer[str(box_id)] = customer
 
     boxes = _boxes_for_customers(route, customer_map, box_map)
-    packing_result = _best_packing_result(container, boxes)
+    packing_result = _best_packing_result(container, boxes, packing_cache)
     placements = packing_result["placements"]
     packed_volume = packing_result["packed_volume"]
     packed_count = packing_result["placed_count"]
@@ -361,6 +549,38 @@ def _evaluate_route(
         "route_box_volume_liters": route_box_volume / MM3_PER_LITER,
         "placements": enriched,
         "placement_errors": validation_errors,
+    }
+
+
+def _estimate_route(
+    route_index: int,
+    route: list[Any],
+    depot: dict[str, Any],
+    customer_map: dict[Any, dict[str, Any]],
+    customer_stats: dict[Any, CustomerLoadStats],
+    container: dict[str, float],
+) -> dict[str, Any]:
+    container_volume = container["L"] * container["W"] * container["H"]
+    boxes_total = sum(customer_stats.get(customer_id, CustomerLoadStats([], 0, 0.0, True)).box_count for customer_id in route)
+    route_box_volume = sum(customer_stats.get(customer_id, CustomerLoadStats([], 0, 0.0, True)).volume for customer_id in route)
+    fits = all(customer_stats.get(customer_id, CustomerLoadStats([], 0, 0.0, True)).individually_fits for customer_id in route)
+    distance = _route_distance(depot, customer_map, route)
+    return {
+        "route_index": route_index,
+        "route": route,
+        "customer_labels": [_customer_label(customer_map[customer_id]) for customer_id in route],
+        "customer_count": len(route),
+        "distance": distance,
+        "feasible": fits,
+        "boxes_total": boxes_total,
+        "boxes_packed": boxes_total if fits else 0,
+        "unpacked_box_ids": [] if fits else ["estimated_unfit"],
+        "fill_rate": route_box_volume / container_volume if container_volume else 0.0,
+        "packing_strategy": "estimated_capacity",
+        "truck_volume_liters": container_volume / MM3_PER_LITER,
+        "route_box_volume_liters": route_box_volume / MM3_PER_LITER,
+        "placements": [],
+        "placement_errors": [] if fits else ["One or more boxes cannot fit the selected truck."],
     }
 
 

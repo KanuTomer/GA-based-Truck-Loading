@@ -56,7 +56,7 @@ CUSTOM_CSS = """
     --coral: #ff6b5f;
     --steel: #8aa0b4;
     --font-display: "Playfair Display", "Soria", Georgia, serif;
-    --font-body: "Space Grotesk", Inter, "Segoe UI", Arial, sans-serif;
+    --font-body: "IBM Plex Mono", "JetBrains Mono", Consolas, monospace;
     --font-mono: "IBM Plex Mono", "JetBrains Mono", Consolas, monospace;
 }
 
@@ -749,6 +749,214 @@ main,
     line-height: 1.05;
 }
 
+/* M5.2 midnight glass pass */
+body,
+gradio-app {
+    background: #05090d !important;
+}
+
+.gradio-container {
+    background:
+        radial-gradient(circle at 18% 12%, rgba(34, 211, 197, 0.14), transparent 24%),
+        radial-gradient(circle at 84% 8%, rgba(138, 160, 180, 0.12), transparent 22%),
+        linear-gradient(180deg, #05090d 0%, #081017 42%, #0b1118 100%) !important;
+    color: #e7f1f4 !important;
+}
+
+.control-panel,
+.result-panel,
+.stage-panel {
+    border-color: rgba(125, 246, 239, 0.18) !important;
+    background: rgba(10, 16, 23, 0.72) !important;
+    box-shadow: 0 28px 80px rgba(0, 0, 0, 0.28) !important;
+    backdrop-filter: blur(18px);
+}
+
+.control-panel,
+.result-panel,
+.control-panel label,
+.result-panel label,
+.control-panel p,
+.result-panel p,
+.control-panel h2,
+.control-panel h3,
+.result-panel h2,
+.result-panel h3,
+.control-panel table,
+.result-panel table,
+.control-panel td,
+.control-panel th,
+.result-panel td,
+.result-panel th,
+.control-panel strong,
+.result-panel strong,
+.control-panel .prose strong,
+.result-panel .prose strong {
+    color: #e7f1f4 !important;
+}
+
+.control-panel .prose p,
+.control-panel .prose li,
+.result-panel .prose p,
+.result-panel .prose li {
+    color: #b8c6cf !important;
+}
+
+.truck-details,
+.run-status,
+.dataset-card,
+.validation-panel,
+.validation-item,
+.download-chip,
+.asset-preview-band {
+    border-color: rgba(125, 246, 239, 0.14) !important;
+    background: rgba(255, 255, 255, 0.055) !important;
+    color: #e7f1f4 !important;
+}
+
+.dataset-card-value,
+.dataset-card-label,
+.dataset-card-note,
+.validation-title,
+.validation-message,
+.download-chip-title,
+.download-chip-note,
+.variant-copy,
+.variant-copy p,
+.variant-copy h3,
+.variant-copy strong {
+    color: #e7f1f4 !important;
+}
+
+.truck-card {
+    min-height: 206px;
+    border-color: rgba(125, 246, 239, 0.17);
+    background:
+        linear-gradient(145deg, rgba(34, 211, 197, 0.13), transparent 46%),
+        linear-gradient(320deg, rgba(247, 201, 72, 0.08), transparent 36%),
+        rgba(255, 255, 255, 0.065);
+}
+
+.truck-card-kicker,
+.truck-card-title,
+.truck-card-dims,
+.body-chip {
+    color: #e7f1f4;
+}
+
+.truck-card-dims {
+    font-size: 0.78rem;
+}
+
+.truck-thumb,
+.selected-preview {
+    min-height: 78px;
+    background:
+        radial-gradient(circle at 50% 18%, rgba(34, 211, 197, 0.22), transparent 42%),
+        rgba(255, 255, 255, 0.07);
+}
+
+.truck-thumb img,
+.selected-preview img {
+    width: 68px;
+    height: 68px;
+    max-width: 68px;
+    max-height: 68px;
+    object-fit: contain;
+}
+
+.body-chip {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(125, 246, 239, 0.18);
+}
+
+.model-stage {
+    min-height: 0;
+    padding: 12px;
+    border-color: rgba(125, 246, 239, 0.17);
+    background:
+        radial-gradient(circle at 74% 22%, rgba(34, 211, 197, 0.12), transparent 24%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.025)),
+        rgba(5, 9, 13, 0.72);
+}
+
+.model-stage-header {
+    margin-bottom: 8px;
+}
+
+.model-stage-title {
+    font-size: 1.15rem;
+}
+
+.model-stage-copy {
+    font-size: 0.82rem;
+}
+
+.model-frame {
+    background: #070c11;
+    background-size: auto;
+}
+
+.packing-viewer-frame {
+    min-height: 540px;
+    border-color: rgba(125, 246, 239, 0.18);
+}
+
+.packing-viewer-empty {
+    min-height: 390px;
+    border-color: rgba(125, 246, 239, 0.18);
+    background:
+        radial-gradient(circle at 32% 18%, rgba(34, 211, 197, 0.12), transparent 30%),
+        rgba(255, 255, 255, 0.045);
+}
+
+.viewer-title {
+    color: #e7f1f4;
+    font-size: 1.45rem;
+}
+
+.viewer-kicker,
+.result-kicker,
+.validation-kicker {
+    color: #22d3c5;
+}
+
+.stage-panel .metric-grid {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding: 4px 2px 8px;
+}
+
+.stage-panel .metric-card {
+    min-width: 168px;
+    min-height: 84px;
+    flex: 0 0 168px;
+    border-color: rgba(125, 246, 239, 0.14);
+    background: rgba(255, 255, 255, 0.065);
+}
+
+.stage-panel .metric-value,
+.stage-panel .metric-label,
+.stage-panel .metric-note {
+    color: #e7f1f4;
+}
+
+.stage-panel .metric-value {
+    font-size: 1.05rem;
+}
+
+.control-panel input,
+.control-panel textarea,
+.control-panel select,
+.control-panel button,
+.control-panel .wrap,
+.control-panel .container,
+.control-panel .secondary-wrap,
+.control-panel .svelte-1gfkn6j {
+    color: #e7f1f4 !important;
+}
+
 @media (max-width: 900px) {
     .hero-strip,
     .metric-grid,
@@ -972,10 +1180,9 @@ def dashboard_header_html(bundle: DatasetBundle | None, truck_name: str, variant
     <div class="result-header">
         <div>
             <div class="result-kicker">Visual results dashboard</div>
-            <div class="result-title">Run story board</div>
+            <div class="result-title">Viewer stage</div>
             <div class="result-copy">
-                Validate the dataset, run the proposed GA, then inspect route metrics and animated
-                truck-loading placements.
+                Validate the dataset, run the proposed GA, then inspect the animated truck-loading scene.
             </div>
         </div>
         <div class="result-pill">{escape(dataset_name)} | {escape(truck_name)} | {escape(variant_name)}</div>
@@ -994,10 +1201,9 @@ def run_dashboard_header_html(
     <div class="result-header">
         <div>
             <div class="result-kicker">Proposed GA completed</div>
-            <div class="result-title">Packed route result</div>
+            <div class="result-title">Packed route scene</div>
             <div class="result-copy">
-                The proposed GA produced {best_info["route_count"]} route(s), then the real
-                packing engine generated 3D placements for the selected truck.
+                {best_info["route_count"]} route(s) generated with exact final packing placements.
             </div>
         </div>
         <div class="result-pill">{escape(bundle.summary.instance_name)} | {escape(truck_name)} | {escape(variant_name)}</div>
@@ -1054,6 +1260,7 @@ def run_metrics_html(run_result: dict, truck_name: str, variant_name: str) -> st
     truck_volume_liters = float(first_route.get("truck_volume_liters") or 0.0)
     total_route_liters = sum(float(route.get("route_box_volume_liters") or 0.0) for route in best_info.get("routes", []))
     strategies = sorted({str(route.get("packing_strategy", "unknown")) for route in best_info.get("routes", [])})
+    diagnostics = run_result.get("diagnostics", {})
     cards = [
         ("Best score", f"{run_result['best_score']:.1f}", "Lower is better"),
         ("Routes", f"{best_info['route_count']}", f"{best_info['feasible_routes']} feasible"),
@@ -1063,6 +1270,9 @@ def run_metrics_html(run_result: dict, truck_name: str, variant_name: str) -> st
         ("Packing order", ", ".join(strategies[:2]), "Best deterministic strategy per route"),
         ("Distance", f"{best_info['total_distance']:.1f}", "Coordinate-space distance"),
         ("Runtime", f"{run_result['runtime_seconds']:.1f}s", f"{truck_name} | {variant_name}"),
+        ("GA search", f"{float(diagnostics.get('ga_search_time_seconds', 0.0)):.2f}s", "Capacity-estimated search"),
+        ("Exact packing", f"{float(diagnostics.get('exact_packing_time_seconds', 0.0)):.2f}s", "Final placement pass"),
+        ("Cache", f"{int(diagnostics.get('packing_cache_hits', 0))} hits", f"{int(diagnostics.get('packing_cache_misses', 0))} exact route evals"),
     ]
     items = "\n".join(
         f"""
@@ -1318,6 +1528,12 @@ def viewer_payload(run_result: dict, truck_name: str, variant_name: str) -> dict
             "width": f"Width {container['W'] / 1000:.1f} m / {container['W'] / 304.8:.1f} ft",
             "height": f"Height {container['H'] / 1000:.1f} m / {container['H'] / 304.8:.1f} ft",
         },
+        "axis_callouts": [
+            {"axis": "length", "label": f"{container['L'] / 1000:.1f} m / {container['L'] / 304.8:.1f} ft"},
+            {"axis": "width", "label": f"{container['W'] / 1000:.1f} m / {container['W'] / 304.8:.1f} ft"},
+            {"axis": "height", "label": f"{container['H'] / 1000:.1f} m / {container['H'] / 304.8:.1f} ft"},
+        ],
+        "show_grid": False,
         "routes": routes,
     }
 
@@ -1533,6 +1749,7 @@ def run_visual_demo(
         config=config,
     )
     best_info = run_result["best_info"]
+    diagnostics = run_result.get("diagnostics", {})
     status = (
         "### Proposed GA run complete\n"
         f"Dataset: **{bundle.summary.instance_name}**\n\n"
@@ -1542,7 +1759,11 @@ def run_visual_demo(
         f"Packed boxes: **{best_info['boxes_packed']}/{best_info['boxes_total']}** | "
         f"Average fill: **{best_info['avg_fill_rate'] * 100:.1f}%**\n\n"
         f"Runtime: **{run_result['runtime_seconds']:.1f}s** with "
-        f"population **{config.population_size}** and **{config.generations}** generations."
+        f"population **{config.population_size}** and **{config.generations}** generations.\n\n"
+        f"GA search: **{float(diagnostics.get('ga_search_time_seconds', 0.0)):.2f}s** | "
+        f"Exact packing: **{float(diagnostics.get('exact_packing_time_seconds', 0.0)):.2f}s** | "
+        f"Cache: **{int(diagnostics.get('packing_cache_hits', 0))} hits / "
+        f"{int(diagnostics.get('packing_cache_misses', 0))} exact route evals**."
     )
     return (
         status,
@@ -1699,17 +1920,17 @@ def build_app() -> gr.Blocks:
                         population_slider = gr.Slider(
                             10,
                             60,
-                            value=40,
+                            value=10,
                             step=10,
-                            label="Population",
+                            label="Population (quick to slower)",
                             interactive=True,
                         )
                         generations_slider = gr.Slider(
                             2,
                             60,
-                            value=50,
+                            value=2,
                             step=10,
-                            label="Generations",
+                            label="Generations (quick to slower)",
                             interactive=True,
                         )
 

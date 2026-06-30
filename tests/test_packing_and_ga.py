@@ -6,6 +6,7 @@ import unittest
 
 from truck_loading.data import load_demo_dataset
 from truck_loading.ga import ProposedGAConfig, run_proposed_ga
+from truck_loading.ga.proposed import PackingCache
 from truck_loading.packing import (
     place_boxes_in_container,
     placement_inside_container,
@@ -48,6 +49,10 @@ class PackingAndGATests(unittest.TestCase):
         self.assertIn("packing_strategy", first_route)
         self.assertIn("truck_volume_liters", first_route)
         self.assertIn("route_box_volume_liters", first_route)
+        self.assertIn("diagnostics", result)
+        self.assertIn("ga_search_time_seconds", result["diagnostics"])
+        self.assertIn("exact_packing_time_seconds", result["diagnostics"])
+        self.assertIn("packing_cache_hits", result["diagnostics"])
         first_placement = first_route["placements"][0]
         self.assertIn("customer_id", first_placement)
         self.assertIn("customer_label", first_placement)
@@ -89,6 +94,36 @@ class PackingAndGATests(unittest.TestCase):
             city_result["best_info"]["boxes_packed"],
         )
 
+    def test_search_uses_fast_estimator_before_exact_final_packing(self) -> None:
+        bundle = load_demo_dataset("50 customers - group 1111 (XML50_1111_01)")
+        preset = get_preset("City Mini Truck")
+        config = ProposedGAConfig(population_size=10, generations=2, seed=11)
+
+        result = run_proposed_ga(bundle.data, (preset.length_mm, preset.width_mm, preset.height_mm), config)
+
+        diagnostics = result["diagnostics"]
+        self.assertEqual(diagnostics["estimated_route_evaluations"], config.population_size * config.generations)
+        self.assertLess(
+            diagnostics["exact_route_evaluations"],
+            diagnostics["estimated_route_evaluations"] * bundle.summary.real_customer_count,
+        )
+        self.assertGreater(result["best_info"]["boxes_packed"], 0)
+
+    def test_packing_cache_reuses_repeated_route_evaluations(self) -> None:
+        container = {"L": 1000.0, "W": 1000.0, "H": 1000.0}
+        boxes = [
+            {"box_id": "a", "length": 200, "width": 200, "height": 200},
+            {"box_id": "b", "length": 300, "width": 200, "height": 100},
+        ]
+        cache = PackingCache(container)
+
+        first = cache.best_result(boxes)
+        second = cache.best_result(boxes)
+
+        self.assertIs(first, second)
+        self.assertEqual(cache.misses, 1)
+        self.assertEqual(cache.hits, 1)
+
     def test_viewer_payload_includes_axis_labels(self) -> None:
         import app
 
@@ -110,6 +145,35 @@ class PackingAndGATests(unittest.TestCase):
         self.assertIn("Length", payload["axis_labels"]["length"])
         self.assertIn("Width", payload["axis_labels"]["width"])
         self.assertIn("Height", payload["axis_labels"]["height"])
+        self.assertFalse(payload["show_grid"])
+        self.assertEqual({item["axis"] for item in payload["axis_callouts"]}, {"length", "width", "height"})
+
+    def test_viewer_template_has_rotation_reset_and_no_grid_helper(self) -> None:
+        from truck_loading.visualization.viewer import packing_viewer_html
+
+        html = packing_viewer_html(
+            {
+                "container": {"L": 1000, "W": 800, "H": 600},
+                "axis_labels": {"length": "Length 1.0 m", "width": "Width 0.8 m", "height": "Height 0.6 m"},
+                "show_grid": False,
+                "routes": [
+                    {
+                        "route_index": 1,
+                        "customer_count": 1,
+                        "boxes_packed": 0,
+                        "boxes_total": 0,
+                        "fill_rate": 0,
+                        "distance": 0,
+                        "customer_labels": ["Customer 1"],
+                        "placements": [],
+                    }
+                ],
+            }
+        )
+
+        self.assertIn("Reset view", html)
+        self.assertIn("pointermove", html)
+        self.assertNotIn("GridHelper", html)
 
     def test_unplaceable_box_is_reported_as_unpacked(self) -> None:
         data = {
@@ -135,7 +199,7 @@ class PackingAndGATests(unittest.TestCase):
 def _capacity_sensitive_dataset() -> dict:
     customers = [{"id": 0, "customer_id": 0, "x": 0, "y": 0, "is_depot": True, "assigned_boxes": []}]
     boxes = []
-    for index in range(1, 7):
+    for index in range(1, 8):
         box_id = f"box_{index}"
         customers.append(
             {

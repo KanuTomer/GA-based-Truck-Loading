@@ -48,7 +48,7 @@ html, body {{
   overflow: hidden;
   background: #0b0f12;
   color: #edf7f6;
-  font-family: "Space Grotesk", "Segoe UI", sans-serif;
+  font-family: "IBM Plex Mono", "Segoe UI", sans-serif;
 }}
 #app {{
   position: relative;
@@ -177,6 +177,7 @@ button:hover, select:hover {{
       <button id="play">Play</button>
       <button id="pause">Pause</button>
       <button id="replay">Replay</button>
+      <button id="resetView">Reset view</button>
       <div class="speed-group" aria-label="Animation speed">
         <button class="speed-button" data-speed="0.75">0.75x</button>
         <button class="speed-button active" data-speed="1">1x</button>
@@ -217,10 +218,12 @@ const key = new THREE.DirectionalLight(0xffffff, 1.4);
 key.position.set(4, 7, 5);
 scene.add(key);
 
+const sceneGroup = new THREE.Group();
+scene.add(sceneGroup);
 const root = new THREE.Group();
-scene.add(root);
+sceneGroup.add(root);
 const boxesGroup = new THREE.Group();
-scene.add(boxesGroup);
+sceneGroup.add(boxesGroup);
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
 let boxMeshes = [];
@@ -228,6 +231,10 @@ let activeRoute = 0;
 let playing = true;
 let startTime = performance.now();
 let speed = 1;
+let dragging = false;
+let lastPointer = {{ x: 0, y: 0 }};
+let viewYaw = -0.18;
+let viewPitch = -0.08;
 
 const dims = payload.container;
 const axisLabels = payload.axis_labels || {{}};
@@ -251,14 +258,24 @@ function buildContainer() {{
   shell.position.copy(line.position);
   root.add(shell);
 
-  const floor = new THREE.GridHelper(Math.max(L, W) * 1.35, 18, 0x31525a, 0x1b2a30);
-  floor.rotation.x = Math.PI / 2;
-  floor.position.set(L / 2, -0.004, W / 2);
-  root.add(floor);
-
-  root.add(makeLabel(axisLabels.length || `Length ${{L.toFixed(1)}} m`, L / 2, -0.08, -0.18));
-  root.add(makeLabel(axisLabels.width || `Width ${{W.toFixed(1)}} m`, L + 0.18, -0.08, W / 2));
-  root.add(makeLabel(axisLabels.height || `Height ${{H.toFixed(1)}} m`, -0.22, H / 2, W + 0.08));
+  addDimensionRail(
+    axisLabels.length || `Length ${{L.toFixed(1)}} m`,
+    new THREE.Vector3(0, -0.035, -0.12),
+    new THREE.Vector3(L, -0.035, -0.12),
+    new THREE.Vector3(0, 0, 0.12)
+  );
+  addDimensionRail(
+    axisLabels.width || `Width ${{W.toFixed(1)}} m`,
+    new THREE.Vector3(L + 0.12, -0.035, 0),
+    new THREE.Vector3(L + 0.12, -0.035, W),
+    new THREE.Vector3(-0.12, 0, 0)
+  );
+  addDimensionRail(
+    axisLabels.height || `Height ${{H.toFixed(1)}} m`,
+    new THREE.Vector3(-0.12, 0, W + 0.1),
+    new THREE.Vector3(-0.12, H, W + 0.1),
+    new THREE.Vector3(0.12, 0, 0)
+  );
 }}
 
 function setCamera() {{
@@ -267,28 +284,57 @@ function setCamera() {{
   camera.lookAt(L / 2, H * 0.42, W / 2);
 }}
 
+function resetView() {{
+  viewYaw = -0.18;
+  viewPitch = -0.08;
+  applyViewRotation();
+  setCamera();
+}}
+
+function applyViewRotation() {{
+  sceneGroup.rotation.set(viewPitch, viewYaw, 0);
+}}
+
+function addLine(start, end, color = 0x7ff6ef, opacity = 0.9) {{
+  const geometry = new THREE.BufferGeometry().setFromPoints([start, end]);
+  const line = new THREE.Line(
+    geometry,
+    new THREE.LineBasicMaterial({{ color, transparent: true, opacity }})
+  );
+  root.add(line);
+  return line;
+}}
+
+function addDimensionRail(text, start, end, tickOffset) {{
+  addLine(start, end, 0x7ff6ef, 0.88);
+  addLine(start, start.clone().add(tickOffset), 0x7ff6ef, 0.82);
+  addLine(end, end.clone().add(tickOffset), 0x7ff6ef, 0.82);
+  const mid = start.clone().add(end).multiplyScalar(0.5).add(tickOffset.clone().multiplyScalar(0.58));
+  root.add(makeLabel(text, mid.x, mid.y, mid.z));
+}}
+
 function makeLabel(text, x, y, z) {{
   const canvas = document.createElement('canvas');
-  canvas.width = 512;
-  canvas.height = 128;
+  canvas.width = 384;
+  canvas.height = 96;
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = 'rgba(11, 15, 18, 0.76)';
-  roundRect(ctx, 10, 26, 492, 70, 22);
+  ctx.fillStyle = 'rgba(5, 10, 14, 0.84)';
+  roundRect(ctx, 10, 25, 364, 48, 16);
   ctx.fill();
   ctx.strokeStyle = 'rgba(34, 211, 197, 0.72)';
-  ctx.lineWidth = 3;
-  roundRect(ctx, 10, 26, 492, 70, 22);
+  ctx.lineWidth = 2;
+  roundRect(ctx, 10, 25, 364, 48, 16);
   ctx.stroke();
   ctx.fillStyle = '#e7fbf8';
-  ctx.font = '700 30px Space Grotesk, Segoe UI, sans-serif';
+  ctx.font = '700 18px IBM Plex Mono, monospace';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText(text, 256, 62);
+  ctx.fillText(text, 192, 49);
   const texture = new THREE.CanvasTexture(canvas);
   const sprite = new THREE.Sprite(new THREE.SpriteMaterial({{ map: texture, transparent: true }}));
   sprite.position.set(x, y, z);
-  sprite.scale.set(1.55, 0.38, 1);
+  sprite.scale.set(0.86, 0.22, 1);
   return sprite;
 }}
 
@@ -359,8 +405,6 @@ function animate(now) {{
       if (t >= 1) mesh.position.copy(mesh.userData.finalPosition);
     }});
   }}
-  root.rotation.y = Math.sin(now * 0.00022) * 0.04;
-  boxesGroup.rotation.y = root.rotation.y;
   renderer.render(scene, camera);
 }}
 
@@ -385,6 +429,7 @@ routeSelect.addEventListener('change', event => buildRoute(Number(event.target.v
 document.getElementById('play').addEventListener('click', () => {{ playing = true; }});
 document.getElementById('pause').addEventListener('click', () => {{ playing = false; }});
 document.getElementById('replay').addEventListener('click', () => buildRoute(activeRoute));
+document.getElementById('resetView').addEventListener('click', resetView);
 document.querySelectorAll('.speed-button').forEach(button => {{
   button.addEventListener('click', () => {{
     speed = Number(button.dataset.speed);
@@ -393,6 +438,27 @@ document.querySelectorAll('.speed-button').forEach(button => {{
   }});
 }});
 renderer.domElement.addEventListener('click', inspect);
+renderer.domElement.addEventListener('pointerdown', event => {{
+  dragging = true;
+  lastPointer = {{ x: event.clientX, y: event.clientY }};
+  renderer.domElement.setPointerCapture(event.pointerId);
+}});
+renderer.domElement.addEventListener('pointermove', event => {{
+  if (!dragging) return;
+  const dx = event.clientX - lastPointer.x;
+  const dy = event.clientY - lastPointer.y;
+  lastPointer = {{ x: event.clientX, y: event.clientY }};
+  viewYaw += dx * 0.006;
+  viewPitch = Math.max(-0.62, Math.min(0.42, viewPitch + dy * 0.004));
+  applyViewRotation();
+}});
+renderer.domElement.addEventListener('pointerup', event => {{
+  dragging = false;
+  renderer.domElement.releasePointerCapture(event.pointerId);
+}});
+renderer.domElement.addEventListener('pointercancel', () => {{
+  dragging = false;
+}});
 window.addEventListener('resize', () => {{
   camera.aspect = container.clientWidth / container.clientHeight;
   camera.updateProjectionMatrix();
@@ -400,7 +466,7 @@ window.addEventListener('resize', () => {{
 }});
 
 buildContainer();
-setCamera();
+resetView();
 buildRoute(0);
 requestAnimationFrame(animate);
 </script>
