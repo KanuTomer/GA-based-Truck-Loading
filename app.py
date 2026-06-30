@@ -11,10 +11,6 @@ from html import escape
 from pathlib import Path
 
 import gradio as gr
-import matplotlib
-
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
 
 from truck_loading.data import (
     DatasetBundle,
@@ -1283,6 +1279,15 @@ gradio-app {
     display: none !important;
 }
 
+.visually-hidden-panel,
+.visually-hidden-panel *,
+.command-cell .visually-hidden-panel,
+.command-cell .visually-hidden-panel *,
+.command-cell .block:has(.visually-hidden-panel),
+.command-cell .wrap:has(.visually-hidden-panel) {
+    display: none !important;
+}
+
 .selected-truck-compact {
     grid-template-columns: 62px minmax(0, 1fr);
     margin-top: 0;
@@ -1856,6 +1861,256 @@ gradio-app {
     overflow-wrap: anywhere;
 }
 
+/* M5.10 live-demo cleanup: plain labels, centered sliders, dark SVG plots. */
+.field-heading,
+.field-heading .prose,
+.field-heading p {
+    margin: 0 0 8px !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    color: #dff7f5 !important;
+    font-family: var(--font-heading) !important;
+    font-size: 1.7rem !important;
+    line-height: 0.9 !important;
+    letter-spacing: 0 !important;
+}
+
+.command-panel h2,
+.stage-viewer-panel .result-title,
+.secondary-panel h3,
+.secondary-panel h2 {
+    font-family: var(--font-heading) !important;
+    font-size: clamp(2.05rem, 2.5vw, 2.75rem) !important;
+    line-height: 0.9 !important;
+    letter-spacing: 0 !important;
+}
+
+.hero-kicker,
+.result-kicker,
+.validation-kicker,
+.model-stage-kicker {
+    font-family: var(--font-body) !important;
+}
+
+.app-shell [data-testid="block-label"],
+.app-shell .label-wrap,
+.app-shell .block-label {
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: #dff7f5 !important;
+    font-family: var(--font-heading) !important;
+    font-size: 1.45rem !important;
+}
+
+.command-panel,
+.stage-viewer-panel,
+.run-output-strip > div,
+.result-panel {
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.08),
+        0 16px 40px rgba(0, 0, 0, 0.18) !important;
+}
+
+.command-cell,
+.metric-card,
+.dataset-card,
+.validation-panel,
+.validation-item,
+.asset-preview-band,
+.truck-details,
+.run-status,
+.download-chip {
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.07),
+        0 10px 26px rgba(0, 0, 0, 0.16) !important;
+}
+
+.command-panel::before,
+.stage-viewer-panel::before,
+.run-output-strip > div::before,
+.result-panel::before,
+.command-cell::before,
+.metric-card::before,
+.dataset-card::before,
+.asset-preview-band::before,
+.truck-details::before,
+.run-status::before {
+    opacity: 0.18 !important;
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.04), transparent 24%) !important;
+}
+
+.selected-truck-compact .variant-copy h3,
+.selected-truck-compact .variant-copy p,
+.selected-truck-compact .variant-copy * {
+    font-family: var(--font-body) !important;
+}
+
+.command-cell label:has(input[type="radio"]) {
+    position: relative !important;
+    padding-left: 56px !important;
+    min-height: 44px !important;
+}
+
+.command-cell label:has(input[type="radio"]) input[type="radio"] {
+    position: absolute !important;
+    left: 18px !important;
+    top: 50% !important;
+    width: 20px !important;
+    height: 20px !important;
+    margin: 0 !important;
+    opacity: 0 !important;
+}
+
+.command-cell label:has(input[type="radio"])::before {
+    content: "" !important;
+    position: absolute !important;
+    left: 18px !important;
+    top: 50% !important;
+    width: 22px !important;
+    height: 22px !important;
+    transform: translateY(-50%) !important;
+    border-radius: 50% !important;
+    border: 1px solid rgba(178, 246, 242, 0.42) !important;
+    background: rgba(255, 255, 255, 0.055) !important;
+    box-shadow: none !important;
+}
+
+.command-cell label:has(input[type="radio"]:checked)::after {
+    content: "" !important;
+    position: absolute !important;
+    left: 25px !important;
+    top: 50% !important;
+    width: 8px !important;
+    height: 8px !important;
+    transform: translateY(-50%) !important;
+    border-radius: 50% !important;
+    background: #ecfffb !important;
+    box-shadow: 0 0 10px rgba(34, 211, 197, 0.72) !important;
+}
+
+.slider-stack {
+    width: 100% !important;
+    gap: 0 !important;
+}
+
+.slider-stack .wrap,
+.slider-stack .block,
+.slider-stack .form,
+.slider-stack .container {
+    overflow: visible !important;
+}
+
+.slider-stack input[type="range"],
+.command-cell .slider input[type="range"],
+.command-cell [data-testid="slider"] input[type="range"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 10px 0 16px !important;
+    padding: 0 !important;
+    overflow: visible !important;
+}
+
+.slider-stack > div {
+    overflow: visible !important;
+}
+
+.dataset-select,
+.dataset-select *,
+.command-cell [data-testid="dropdown"],
+.command-cell [data-testid="dropdown"] * {
+    overflow: visible !important;
+}
+
+.dataset-select input,
+.dataset-select [role="combobox"] {
+    min-width: 0 !important;
+    padding-right: 42px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+}
+
+.route-geometry-card {
+    width: 100%;
+    min-height: 360px;
+    border: 1px solid rgba(178, 246, 242, 0.14);
+    border-radius: 14px;
+    background:
+        radial-gradient(circle at 18% 14%, rgba(34, 211, 197, 0.12), transparent 28%),
+        rgba(5, 10, 14, 0.78);
+    padding: 14px;
+    color: #e7f1f4;
+    overflow: hidden;
+}
+
+.route-geometry-card.empty {
+    display: grid;
+    align-content: center;
+}
+
+.route-geometry-title {
+    color: #f3fbfb;
+    font-family: var(--font-body);
+    font-weight: 800;
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+}
+
+.route-geometry-card p {
+    color: #9fb0bb;
+    margin: 0;
+}
+
+.route-geometry-svg {
+    width: 100%;
+    display: block;
+    min-height: 300px;
+    font-family: var(--font-body);
+}
+
+.route-geometry-svg .plot-bg {
+    fill: rgba(6, 11, 16, 0.92);
+    stroke: rgba(178, 246, 242, 0.14);
+}
+
+.route-geometry-svg .plot-grid line {
+    stroke: rgba(178, 246, 242, 0.08);
+    stroke-width: 1;
+}
+
+.route-geometry-svg .customer-dot {
+    fill: #22d3c5;
+    stroke: #0a1117;
+    stroke-width: 1.2;
+}
+
+.route-geometry-svg .depot-dot {
+    fill: #ff6b5f;
+    stroke: #0a1117;
+    stroke-width: 1.2;
+}
+
+.route-geometry-svg text {
+    fill: #d9e6ea;
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.convergence-svg rect {
+    fill: rgba(6, 11, 16, 0.92) !important;
+}
+
+.convergence-svg text {
+    fill: #e7f1f4 !important;
+    font-family: var(--font-body) !important;
+}
+
 @media (max-width: 1180px) {
     .command-bar,
     .run-output-strip {
@@ -1923,7 +2178,7 @@ gradio-app {
 
 BOX_PREVIEW_HEADERS = ["Box", "Dimensions", "Volume"]
 ROUTE_PREVIEW_HEADERS = ["Route / stop", "Customers", "Distance / location", "Boxes", "Status"]
-BUILD_LABEL = "M5.9 font and dataset finalization build"
+BUILD_LABEL = "M5.10 live demo presentation fix build"
 
 
 def default_demo_label() -> str:
@@ -1933,7 +2188,7 @@ def default_demo_label() -> str:
 def build_badge_html() -> str:
     return f"""
     <div class="build-badge">
-        <span>{BUILD_LABEL} | fresh-server validation target: 127.0.0.1:7868+</span>
+        <span>{BUILD_LABEL} | fresh-server validation target: 127.0.0.1:7869+</span>
         <span>No baseline models | Proposed GA only | Quick defaults 10 x 2</span>
     </div>
     """
@@ -1970,7 +2225,7 @@ def dataset_helper(source: str, bundle: DatasetBundle | None = None, error: str 
         return "### Demo dataset\nChoose one of the bundled 50/100/150/200 customer demo datasets."
     return (
         "### Demo dataset\n"
-        f"Loaded **{bundle.summary.instance_name}** from the bundled conference batch."
+        f"Loaded **{bundle.summary.instance_name}** from the bundled demo datasets."
     )
 
 
@@ -2139,7 +2394,7 @@ def result_metrics_html(
         truck_fill = bundle.summary.total_box_volume_mm3 / truck_volume * 100 if truck_volume else 0
         warnings = sum(1 for result in results if result.severity == "warning")
         cards = [
-            ("Readiness", "Blocked" if blocked else "Ready", "Validation gate for future run"),
+            ("Readiness", "Blocked" if blocked else "Ready", "Validation gate for this run"),
             ("Customers", f"{bundle.summary.real_customer_count}", "Max hosted demo: 200"),
             ("Boxes", f"{bundle.summary.box_count}", f"Warnings: {warnings}"),
             ("Truck fill", f"{truck_fill:.1f}%", f"{format_liters(bundle.summary.total_box_volume_mm3)} total box volume"),
@@ -2240,21 +2495,17 @@ def coordinates_label(customer: dict) -> str:
         return "Coordinates unavailable"
 
 
-def route_plot_figure(bundle: DatasetBundle | None, run_result: dict | None = None):
-    fig, ax = plt.subplots(figsize=(7.2, 4.2), facecolor="#f8fbfb")
-    ax.set_facecolor("#f8fbfb")
-    ax.grid(True, color="#dce5e8", linewidth=0.8)
-    ax.tick_params(colors="#5e6d78")
-    for spine in ax.spines.values():
-        spine.set_color("#cbd7dc")
-
+def route_geometry_html(bundle: DatasetBundle | None, run_result: dict | None = None) -> str:
     if bundle is None:
-        ax.text(0.5, 0.5, "Upload or choose a dataset to preview route geometry.", ha="center", va="center")
-        ax.set_axis_off()
-        return fig
+        return """
+        <div class="route-geometry-card empty">
+            <div class="route-geometry-title">Customer layout preview</div>
+            <p>Choose a demo dataset or upload JSON data to preview customer coordinates.</p>
+        </div>
+        """
 
-    depot_points = []
-    customer_points = []
+    depot_points: list[tuple[float, float]] = []
+    customer_points: list[tuple[float, float]] = []
     for customer in bundle.data["customers"]:
         try:
             point = (float(customer["x"]), float(customer["y"]))
@@ -2265,18 +2516,39 @@ def route_plot_figure(bundle: DatasetBundle | None, run_result: dict | None = No
         else:
             customer_points.append(point)
 
-    if not customer_points and not depot_points:
-        ax.text(0.5, 0.5, "Coordinates unavailable for this dataset.", ha="center", va="center")
-        ax.set_axis_off()
-        return fig
+    all_points = customer_points + depot_points
+    if not all_points:
+        return f"""
+        <div class="route-geometry-card empty">
+            <div class="route-geometry-title">Customer layout preview</div>
+            <p>Coordinates are unavailable for {escape(bundle.summary.instance_name)}.</p>
+        </div>
+        """
 
-    if customer_points:
-        xs, ys = zip(*customer_points, strict=True)
-        ax.scatter(xs, ys, s=42, c="#22d3c5", edgecolors="#111417", linewidths=0.5, alpha=0.88, label="Customers")
-    if depot_points:
-        dx, dy = zip(*depot_points, strict=True)
-        ax.scatter(dx, dy, s=95, marker="s", c="#ff6b5f", edgecolors="#111417", linewidths=0.7, label="Depot")
+    width = 760
+    height = 420
+    pad = 34
+    min_x = min(x for x, _ in all_points)
+    max_x = max(x for x, _ in all_points)
+    min_y = min(y for _, y in all_points)
+    max_y = max(y for _, y in all_points)
+    span_x = max(max_x - min_x, 1.0)
+    span_y = max(max_y - min_y, 1.0)
 
+    def project(point: tuple[float, float]) -> tuple[float, float]:
+        x, y = point
+        sx = pad + (x - min_x) / span_x * (width - pad * 2)
+        sy = height - pad - (y - min_y) / span_y * (height - pad * 2)
+        return sx, sy
+
+    grid_lines = []
+    for index in range(6):
+        x = pad + index * (width - pad * 2) / 5
+        y = pad + index * (height - pad * 2) / 5
+        grid_lines.append(f'<line x1="{x:.1f}" y1="{pad}" x2="{x:.1f}" y2="{height - pad}" />')
+        grid_lines.append(f'<line x1="{pad}" y1="{y:.1f}" x2="{width - pad}" y2="{y:.1f}" />')
+
+    route_paths = []
     if run_result is not None and depot_points:
         depot = depot_points[0]
         customer_lookup = {
@@ -2284,7 +2556,7 @@ def route_plot_figure(bundle: DatasetBundle | None, run_result: dict | None = No
             for customer in bundle.data["customers"]
             if not customer.get("is_depot") and customer.get("customer_id", customer.get("id")) is not None
         }
-        route_colors = ["#22d3c5", "#f7c948", "#ff6b5f", "#8aa0b4", "#7c3aed", "#16a34a"]
+        route_colors = ["#22d3c5", "#f7c948", "#ff6b5f", "#9b8cff", "#87d37c", "#ff9f43"]
         for route in run_result["best_info"]["routes"][:8]:
             points = [depot]
             for customer_id in route["route"]:
@@ -2293,17 +2565,40 @@ def route_plot_figure(bundle: DatasetBundle | None, run_result: dict | None = No
                     points.append((float(customer.get("x", 0)), float(customer.get("y", 0))))
             points.append(depot)
             if len(points) > 2:
-                xs, ys = zip(*points, strict=True)
+                projected = [project(point) for point in points]
+                line_points = " ".join(f"{x:.1f},{y:.1f}" for x, y in projected)
                 color = route_colors[(route["route_index"] - 1) % len(route_colors)]
-                ax.plot(xs, ys, color=color, linewidth=1.4, alpha=0.72)
+                route_paths.append(
+                    f'<polyline points="{line_points}" fill="none" stroke="{color}" stroke-width="2.2" opacity="0.78" />'
+                )
+
+    customer_marks = []
+    for point in customer_points:
+        x, y = project(point)
+        customer_marks.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="4.4" class="customer-dot" />')
+    depot_marks = []
+    for point in depot_points:
+        x, y = project(point)
+        depot_marks.append(f'<rect x="{x - 5:.1f}" y="{y - 5:.1f}" width="10" height="10" class="depot-dot" />')
 
     title_prefix = "Proposed GA route geometry" if run_result is not None else "Customer layout preview"
-    ax.set_title(f"{title_prefix} - {bundle.summary.instance_name}", color="#141a1f", fontsize=11, weight="bold")
-    ax.set_xlabel("X coordinate", color="#45545f")
-    ax.set_ylabel("Y coordinate", color="#45545f")
-    ax.legend(frameon=False, loc="best")
-    fig.tight_layout()
-    return fig
+    return f"""
+    <div class="route-geometry-card">
+        <div class="route-geometry-title">{escape(title_prefix)} - {escape(bundle.summary.instance_name)}</div>
+        <svg viewBox="0 0 {width} {height}" class="route-geometry-svg" role="img" aria-label="{escape(title_prefix)}">
+            <rect x="0" y="0" width="{width}" height="{height}" rx="18" class="plot-bg" />
+            <g class="plot-grid">{"".join(grid_lines)}</g>
+            <g class="route-lines">{"".join(route_paths)}</g>
+            <g>{"".join(customer_marks)}{"".join(depot_marks)}</g>
+            <g class="plot-legend">
+                <circle cx="{pad + 10}" cy="{pad - 12}" r="4.4" class="customer-dot" />
+                <text x="{pad + 22}" y="{pad - 8}">Customers</text>
+                <rect x="{pad + 128}" y="{pad - 17}" width="10" height="10" class="depot-dot" />
+                <text x="{pad + 144}" y="{pad - 8}">Depot</text>
+            </g>
+        </svg>
+    </div>
+    """
 
 
 def convergence_placeholder_html(bundle: DatasetBundle | None = None) -> str:
@@ -2464,7 +2759,7 @@ def dashboard_outputs(
             validation_panel_html(None, truck_name, error=error),
             result_metrics_html(None, truck_name, variant_name, error=error),
             [],
-            route_plot_figure(None),
+            route_geometry_html(None),
             convergence_placeholder_html(None),
             download_placeholder_html(None, blocked=True),
             packing_viewer_placeholder(),
@@ -2482,7 +2777,7 @@ def dashboard_outputs(
         validation_panel_html(bundle, truck_name),
         result_metrics_html(bundle, truck_name, variant_name),
         route_preview_rows(bundle),
-        route_plot_figure(bundle),
+        route_geometry_html(bundle),
         convergence_placeholder_html(bundle),
         download_placeholder_html(bundle, blocked=blocked),
         packing_viewer_placeholder(),
@@ -2619,7 +2914,7 @@ def run_visual_demo(
             dashboard_header_html(None, truck_name, variant_name),
             result_metrics_html(None, truck_name, variant_name, error=str(exc)),
             [],
-            route_plot_figure(None),
+            route_geometry_html(None),
             convergence_placeholder_html(None),
             download_placeholder_html(None, blocked=True),
             packing_viewer_placeholder(),
@@ -2640,7 +2935,7 @@ def run_visual_demo(
             dashboard_header_html(bundle, truck_name, variant_name),
             result_metrics_html(bundle, truck_name, variant_name),
             route_preview_rows(bundle),
-            route_plot_figure(bundle),
+            route_geometry_html(bundle),
             convergence_placeholder_html(bundle),
             download_placeholder_html(bundle, blocked=True),
             packing_viewer_placeholder(),
@@ -2674,7 +2969,7 @@ def run_visual_demo(
         run_dashboard_header_html(bundle, truck_name, variant_name, run_result),
         run_metrics_html(run_result, truck_name, variant_name),
         route_result_rows(run_result),
-        route_plot_figure(bundle, run_result=run_result),
+        route_geometry_html(bundle, run_result=run_result),
         convergence_result_html(run_result),
         downloads_result_html(bundle, run_result, truck_name, variant_name),
         packing_viewer_html(viewer_payload(run_result, truck_name, variant_name)),
@@ -2794,15 +3089,19 @@ def build_app() -> gr.Blocks:
                 gr.Markdown("## Run setup")
                 with gr.Row(equal_height=False, elem_classes=["command-bar"]):
                     with gr.Column(scale=1, min_width=220, elem_classes=["command-cell"]):
+                        gr.Markdown("Dataset source", elem_classes=["field-heading"])
                         dataset_source = gr.Radio(
                             choices=["Demo dataset", "Upload dataset"],
                             value="Demo dataset",
-                            label="Dataset source",
+                            label=None,
+                            show_label=False,
                         )
+                        gr.Markdown("Demo dataset", elem_classes=["field-heading"])
                         demo_dataset = gr.Dropdown(
                             choices=demo_dataset_options(),
                             value=default_dataset,
-                            label="Demo dataset",
+                            label=None,
+                            show_label=False,
                             elem_classes=["dataset-select"],
                         )
                         upload_file = gr.File(
@@ -2811,16 +3110,20 @@ def build_app() -> gr.Blocks:
                             visible=False,
                         )
                     with gr.Column(scale=1, min_width=220, elem_classes=["command-cell"]):
+                        gr.Markdown("Truck class", elem_classes=["field-heading"])
                         truck_preset = gr.Radio(
                             choices=preset_names(),
                             value=default_truck,
-                            label="Truck class",
+                            label=None,
+                            show_label=False,
                             elem_classes=["truck-class-radio"],
                         )
+                        gr.Markdown("Body style", elem_classes=["field-heading"])
                         truck_variant = gr.Radio(
                             choices=variant_names(default_truck),
                             value=default_variant,
-                            label="Body style",
+                            label=None,
+                            show_label=False,
                             elem_classes=["body-style-radio"],
                         )
                     with gr.Column(scale=1, min_width=220, elem_classes=["command-cell", "truck-summary-cell"]):
@@ -2831,22 +3134,27 @@ def build_app() -> gr.Blocks:
                         )
                     with gr.Column(scale=1, min_width=240, elem_classes=["command-cell"]):
                         with gr.Row():
-                            population_slider = gr.Slider(
-                                10,
-                                60,
-                                value=10,
-                                step=10,
-                                label="Population",
-                                interactive=True,
-                            )
-                            generations_slider = gr.Slider(
-                                2,
-                                60,
-                                value=2,
-                                step=1,
-                                label="Generations",
-                                interactive=True,
-                            )
+                            with gr.Column(elem_classes=["slider-stack"]):
+                                gr.Markdown("Population", elem_classes=["field-heading"])
+                                population_slider = gr.Slider(
+                                    10,
+                                    60,
+                                    value=10,
+                                    step=10,
+                                    label=None,
+                                    show_label=False,
+                                    interactive=True,
+                                )
+                                gr.Markdown("Generations", elem_classes=["field-heading"])
+                                generations_slider = gr.Slider(
+                                    2,
+                                    60,
+                                    value=2,
+                                    step=1,
+                                    label=None,
+                                    show_label=False,
+                                    interactive=True,
+                                )
                         run_button = gr.Button("Run proposed GA", variant="primary")
                 dataset_status = gr.Markdown(
                     dataset_helper("Demo dataset", bundle=default_bundle),
@@ -2878,6 +3186,7 @@ def build_app() -> gr.Blocks:
                             headers=BOX_PREVIEW_HEADERS,
                             value=box_preview_rows(default_bundle),
                             label="Box preview",
+                            show_label=False,
                             interactive=False,
                             wrap=True,
                         )
@@ -2887,7 +3196,7 @@ def build_app() -> gr.Blocks:
                 with gr.Row(elem_classes=["secondary-grid"]):
                     with gr.Column(scale=1):
                         gr.Markdown("### Customer geometry")
-                        route_plot = gr.Plot(value=default_dashboard[8], show_label=False)
+                        route_plot = gr.HTML(default_dashboard[8])
                     with gr.Column(scale=1):
                         gr.Markdown("### Route preview")
                         route_summary = gr.Dataframe(

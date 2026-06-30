@@ -296,8 +296,8 @@ function buildContainer() {{
     new THREE.Vector3(-0.12, H, W + 0.1),
     new THREE.Vector3(0.12, 0, 0)
   );
-  root.add(makeLabel('Back', -0.18, H + 0.16, W / 2));
-  root.add(makeLabel('Front', L + 0.18, H + 0.16, W / 2));
+  root.add(makeLabel('Front', -0.18, H + 0.16, W / 2));
+  root.add(makeLabel('Back', L + 0.18, H + 0.16, W / 2));
 }}
 
 function setCamera() {{

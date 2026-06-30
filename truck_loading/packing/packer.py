@@ -62,8 +62,8 @@ def place_boxes_in_container(
 ) -> tuple[list[dict[str, float | str]], float, int]:
     """Place boxes with a deterministic first-fit free-space heuristic.
 
-    This is adapted from the dissertation packer and kept app-local so the
-    dissertation repository remains read-only.
+    This is adapted from the source packer and kept app-local so the original
+    research prototype remains separate.
     """
     free_spaces = [FreeSpace(0, 0, 0, float(container["L"]), float(container["W"]), float(container["H"]))]
     placements: list[dict[str, float | str]] = []

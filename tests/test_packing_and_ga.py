@@ -177,6 +177,7 @@ class PackingAndGATests(unittest.TestCase):
         self.assertIn("camera.lookAt(0, 0, 0)", html)
         self.assertIn("Front", html)
         self.assertIn("Back", html)
+        self.assertLess(html.index("Front"), html.index("Back"))
         self.assertIn("M PLUS Code Latin", html)
         self.assertIn("VT323", html)
         self.assertNotIn("IBM Plex Mono", html)

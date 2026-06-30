@@ -12,7 +12,7 @@ pinned: false
 
 Portfolio-style visual demo for a genetic-algorithm-based truck loading and route-packing workflow.
 
-This repository is the standalone web-app project derived from the dissertation work in `Dissertation-3L-SDVRP`. The dissertation repository is treated as read-only source material; app development, commits, deployment, and future merges happen here.
+This repository is the standalone web-app project for a visual GA-based truck loading demo. App development, commits, deployment, and future merges happen here while the original research prototype remains separate.
 
 ## Planned MVP
 
@@ -32,7 +32,7 @@ This repo will include only the code needed for the app demo:
 - Gradio UI
 - 2D/3D visualization helpers
 
-It will not include dissertation baselines, historical scripts, paper-reporting outputs, ablation studies, or generated result archives.
+It will not include legacy comparison baselines, historical scripts, paper-reporting outputs, ablation studies, or generated result archives.
 
 ## Assets
 

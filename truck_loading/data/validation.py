@@ -112,7 +112,7 @@ def validate_data_quality(
 
     if not has_blocking_results(results):
         warning_count = sum(1 for result in results if result.severity == "warning")
-        message = "Dataset is ready for the future proposed-GA execution step."
+        message = "Dataset is ready for the proposed-GA execution step."
         if warning_count:
             message = f"Dataset is usable with {warning_count} non-blocking warning(s)."
         results.insert(
