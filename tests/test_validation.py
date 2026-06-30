@@ -6,18 +6,14 @@ import copy
 import unittest
 
 from truck_loading.data import (
+    demo_dataset_options,
     has_blocking_results,
     load_demo_dataset,
     validate_data_quality,
 )
 
 
-DEMO_LABELS = (
-    "50 customers - group 1111 (XML50_1111_01)",
-    "50 customers - group 1142 (XML50_1142_01)",
-    "100 customers - group 1111 (XML100_1111_01)",
-    "100 customers - group 1142 (XML100_1142_01)",
-)
+DEMO_LABELS = tuple(demo_dataset_options())
 
 
 class ValidationTests(unittest.TestCase):
@@ -60,7 +56,7 @@ class ValidationTests(unittest.TestCase):
     def test_customer_cap_is_blocking(self) -> None:
         data = copy.deepcopy(load_demo_dataset(DEMO_LABELS[0]).data)
         template = copy.deepcopy(data["customers"][1])
-        for customer_id in range(1000, 1052):
+        for customer_id in range(1000, 1152):
             extra = copy.deepcopy(template)
             extra["id"] = customer_id
             extra["customer_id"] = customer_id

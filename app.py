@@ -42,7 +42,7 @@ from truck_loading.visualization import packing_viewer_html, packing_viewer_plac
 
 
 CUSTOM_CSS = """
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600;700&family=Playfair+Display:wght@600;700;800&family=Space+Grotesk:wght@500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=M+PLUS+Code+Latin:wght@400;500;600;700&family=Press+Start+2P&family=VT323&display=swap');
 
 :root {
     --bg-ink: #111417;
@@ -55,9 +55,10 @@ CUSTOM_CSS = """
     --amber: #f7c948;
     --coral: #ff6b5f;
     --steel: #8aa0b4;
-    --font-display: "Playfair Display", "Soria", Georgia, serif;
-    --font-body: "IBM Plex Mono", "JetBrains Mono", Consolas, monospace;
-    --font-mono: "IBM Plex Mono", "JetBrains Mono", Consolas, monospace;
+    --font-title: "Press Start 2P";
+    --font-heading: "VT323";
+    --font-body: "M PLUS Code Latin";
+    --font-mono: "M PLUS Code Latin";
 }
 
 body,
@@ -71,8 +72,8 @@ gradio-app {
 .gradio-container {
     width: 100% !important;
     min-width: 0 !important;
-    max-width: 1480px !important;
-    margin: 0 auto !important;
+    max-width: 100% !important;
+    margin: 0 !important;
     overflow-x: hidden !important;
     background:
         linear-gradient(135deg, rgba(34, 211, 197, 0.08), transparent 36%),
@@ -103,7 +104,7 @@ main,
 .app-shell {
     width: 100%;
     max-width: 100%;
-    padding: 18px;
+    padding: 16px;
 }
 
 .main-workspace {
@@ -130,9 +131,9 @@ main,
 
 .hero-title {
     margin: 10px 0 8px;
-    font-family: var(--font-display);
-    font-size: clamp(2.4rem, 5vw, 4.8rem);
-    line-height: 0.95;
+    font-family: var(--font-title);
+    font-size: clamp(1.45rem, 3.4vw, 3.2rem);
+    line-height: 1.18;
     letter-spacing: 0;
 }
 
@@ -168,6 +169,68 @@ main,
     color: var(--text-main);
     font-size: 1rem;
     font-weight: 800;
+}
+
+.site-footer {
+    margin-top: 18px;
+    border: 1px solid rgba(178, 246, 242, 0.16);
+    border-radius: 14px;
+    background:
+        linear-gradient(145deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.012)),
+        rgba(5, 10, 14, 0.76);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 16px 44px rgba(0, 0, 0, 0.24);
+    color: #d7e4e8;
+    padding: 16px 18px;
+}
+
+.footer-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.footer-credit {
+    color: #9fb0bb;
+    font-size: 0.82rem;
+}
+
+.footer-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.footer-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    border: 1px solid rgba(178, 246, 242, 0.16);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.035);
+    color: #e7f1f4 !important;
+    padding: 8px 10px;
+    text-decoration: none !important;
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.footer-link:hover {
+    border-color: rgba(34, 211, 197, 0.5);
+    background: rgba(34, 211, 197, 0.12);
+}
+
+.footer-icon {
+    display: inline-grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 999px;
+    border: 1px solid rgba(34, 211, 197, 0.34);
+    color: #22d3c5;
+    font-size: 0.72rem;
+    line-height: 1;
 }
 
 .control-panel,
@@ -217,7 +280,7 @@ main,
 .control-panel .prose h3,
 .result-panel .prose h2,
 .result-panel .prose h3 {
-    font-family: var(--font-display) !important;
+    font-family: var(--font-heading) !important;
     margin-top: 0.2rem !important;
     margin-bottom: 0.55rem !important;
 }
@@ -594,7 +657,7 @@ main,
 .result-title {
     margin-top: 4px;
     color: #141a1f;
-    font-family: var(--font-display);
+    font-family: var(--font-heading);
     font-size: 2rem;
     font-weight: 800;
     line-height: 1.05;
@@ -743,7 +806,7 @@ main,
 .viewer-title {
     margin-top: 8px;
     color: #141a1f;
-    font-family: var(--font-display);
+    font-family: var(--font-heading);
     font-size: 2rem;
     font-weight: 800;
     line-height: 1.05;
@@ -1538,6 +1601,9 @@ gradio-app {
 }
 
 .command-cell label:has(input[type="radio"]) {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
     border-radius: 10px !important;
     border: 1px solid rgba(178, 246, 242, 0.12) !important;
     background: rgba(255, 255, 255, 0.045) !important;
@@ -1555,8 +1621,22 @@ gradio-app {
 }
 
 .command-cell input[type="radio"] {
+    appearance: none !important;
+    width: 18px !important;
+    height: 18px !important;
+    min-width: 18px !important;
+    border: 1px solid rgba(178, 246, 242, 0.3) !important;
+    border-radius: 50% !important;
+    background: rgba(255, 255, 255, 0.055) !important;
     accent-color: #22d3c5 !important;
     filter: drop-shadow(0 0 6px rgba(34, 211, 197, 0.42));
+}
+
+.command-cell input[type="radio"]:checked {
+    border-color: rgba(34, 211, 197, 0.84) !important;
+    background:
+        radial-gradient(circle, #e7fffb 0 24%, transparent 27%),
+        rgba(34, 211, 197, 0.18) !important;
 }
 
 .command-cell .form,
@@ -1605,11 +1685,33 @@ gradio-app {
 .command-cell .slider,
 .command-cell [data-testid="slider"] {
     background: transparent !important;
+    overflow: visible !important;
 }
 
 .command-cell .slider input[type="range"],
 .command-cell [data-testid="slider"] input[type="range"] {
-    margin-inline: 0 !important;
+    width: calc(100% - 32px) !important;
+    margin: 8px 16px 2px !important;
+}
+
+.command-cell .slider .wrap,
+.command-cell [data-testid="slider"] .wrap {
+    overflow: visible !important;
+}
+
+.command-panel,
+.command-cell,
+.dataset-select,
+.dataset-select .wrap,
+.dataset-select .container,
+.dataset-select [data-testid="dropdown"] {
+    overflow: visible !important;
+}
+
+.dataset-select input,
+.dataset-select [role="combobox"] {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
 }
 
 /* M5.8 global cleanup: keep Gradio wrappers invisible outside real surfaces. */
@@ -1821,7 +1923,7 @@ gradio-app {
 
 BOX_PREVIEW_HEADERS = ["Box", "Dimensions", "Volume"]
 ROUTE_PREVIEW_HEADERS = ["Route / stop", "Customers", "Distance / location", "Boxes", "Status"]
-BUILD_LABEL = "M5.8 global wrapper cleanup build"
+BUILD_LABEL = "M5.9 font and dataset finalization build"
 
 
 def default_demo_label() -> str:
@@ -1831,7 +1933,7 @@ def default_demo_label() -> str:
 def build_badge_html() -> str:
     return f"""
     <div class="build-badge">
-        <span>{BUILD_LABEL} | fresh-server validation target: 127.0.0.1:7867+</span>
+        <span>{BUILD_LABEL} | fresh-server validation target: 127.0.0.1:7868+</span>
         <span>No baseline models | Proposed GA only | Quick defaults 10 x 2</span>
     </div>
     """
@@ -1865,7 +1967,7 @@ def dataset_helper(source: str, bundle: DatasetBundle | None = None, error: str 
         return f"### Upload dataset\nLoaded **{bundle.summary.instance_name}**."
 
     if bundle is None:
-        return "### Demo dataset\nChoose one of the bundled 50/100 customer demo datasets."
+        return "### Demo dataset\nChoose one of the bundled 50/100/150/200 customer demo datasets."
     return (
         "### Demo dataset\n"
         f"Loaded **{bundle.summary.instance_name}** from the bundled conference batch."
@@ -2038,7 +2140,7 @@ def result_metrics_html(
         warnings = sum(1 for result in results if result.severity == "warning")
         cards = [
             ("Readiness", "Blocked" if blocked else "Ready", "Validation gate for future run"),
-            ("Customers", f"{bundle.summary.real_customer_count}", "Max hosted demo: 100"),
+            ("Customers", f"{bundle.summary.real_customer_count}", "Max hosted demo: 200"),
             ("Boxes", f"{bundle.summary.box_count}", f"Warnings: {warnings}"),
             ("Truck fill", f"{truck_fill:.1f}%", f"{format_liters(bundle.summary.total_box_volume_mm3)} total box volume"),
             ("Selected truck", preset.name, variant_name),
@@ -2610,6 +2712,33 @@ def hero_html() -> str:
     """
 
 
+def footer_html() -> str:
+    return """
+    <footer class="site-footer">
+        <div class="footer-row">
+            <div class="footer-credit">
+                Truck visuals use
+                <a class="footer-link" href="https://kenney.nl/assets/car-kit" target="_blank" rel="noopener noreferrer">
+                    <span class="footer-icon">K</span> Kenney Car Kit
+                </a>
+                assets under CC0.
+            </div>
+            <div class="footer-links">
+                <a class="footer-link" href="https://www.linkedin.com/in/kanu-tomer/" target="_blank" rel="noopener noreferrer">
+                    <span class="footer-icon">in</span> LinkedIn
+                </a>
+                <a class="footer-link" href="https://github.com/KanuTomer" target="_blank" rel="noopener noreferrer">
+                    <span class="footer-icon">GH</span> GitHub
+                </a>
+                <a class="footer-link" href="mailto:kanutomer123@gmail.com">
+                    <span class="footer-icon">@</span> Email
+                </a>
+            </div>
+        </div>
+    </footer>
+    """
+
+
 def truck_cards_html(selected_name: str) -> str:
     cards = []
     for name in preset_names():
@@ -2674,6 +2803,7 @@ def build_app() -> gr.Blocks:
                             choices=demo_dataset_options(),
                             value=default_dataset,
                             label="Demo dataset",
+                            elem_classes=["dataset-select"],
                         )
                         upload_file = gr.File(
                             label="Dataset file",
@@ -2769,6 +2899,8 @@ def build_app() -> gr.Blocks:
                     with gr.Column(scale=1):
                         gr.Markdown("### Downloads")
                         downloads_placeholder = gr.HTML(default_dashboard[10])
+
+            gr.HTML(footer_html())
 
         dataset_source.change(
             fn=update_dataset_source,

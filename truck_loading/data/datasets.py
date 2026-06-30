@@ -18,12 +18,20 @@ DEMO_DATASET_FILES: tuple[str, ...] = (
     "XML50_1142_01_merged_with_boxes_norm.json",
     "XML100_1111_01_merged_with_boxes_norm.json",
     "XML100_1142_01_merged_with_boxes_norm.json",
+    "XML150_1111_01_merged_with_boxes_norm.json",
+    "XML150_1142_01_merged_with_boxes_norm.json",
+    "XML200_1111_01_merged_with_boxes_norm.json",
+    "XML200_1142_01_merged_with_boxes_norm.json",
 )
 DEMO_DATASET_LABELS: tuple[str, ...] = (
     "50 customers - group 1",
     "50 customers - group 2",
     "100 customers - group 1",
     "100 customers - group 2",
+    "150 customers - group 1",
+    "150 customers - group 2",
+    "200 customers - group 1",
+    "200 customers - group 2",
 )
 THIN_BOX_THRESHOLD_MM = 75.0
 

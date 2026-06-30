@@ -40,7 +40,7 @@ def _viewer_document(payload: dict[str, Any]) -> str:
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600;700&family=Space+Grotesk:wght@500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=M+PLUS+Code+Latin:wght@400;500;600;700&family=VT323&display=swap');
 html, body {{
   width: 100%;
   height: 100%;
@@ -48,7 +48,7 @@ html, body {{
   overflow: hidden;
   background: #0b0f12;
   color: #edf7f6;
-  font-family: "IBM Plex Mono", "Segoe UI", sans-serif;
+  font-family: "M PLUS Code Latin";
 }}
 #app {{
   position: relative;
@@ -94,6 +94,7 @@ html, body {{
 }}
 .title {{
   margin-top: 4px;
+  font-family: "VT323";
   font-size: 18px;
   font-weight: 800;
   line-height: 1.05;
@@ -114,7 +115,7 @@ button, select {{
   border-radius: 10px;
   background: rgba(5, 10, 14, .88);
   color: #edf7f6;
-  font: 700 12px "IBM Plex Mono", monospace;
+  font: 700 12px "M PLUS Code Latin";
   padding: 7px 9px;
   color-scheme: dark;
 }}
@@ -134,7 +135,7 @@ select {{
 select option {{
   background: #0b1117;
   color: #edf7f6;
-  font: 700 13px "IBM Plex Mono", monospace;
+  font: 700 13px "M PLUS Code Latin";
 }}
 button:hover, select:hover {{
   border-color: rgba(34, 211, 197, .66);
@@ -347,7 +348,7 @@ function makeLabel(text, x, y, z) {{
   roundRect(ctx, 10, 25, 364, 48, 16);
   ctx.stroke();
   ctx.fillStyle = '#e7fbf8';
-  ctx.font = '700 18px IBM Plex Mono, monospace';
+  ctx.font = '700 18px M PLUS Code Latin';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText(text, 192, 49);

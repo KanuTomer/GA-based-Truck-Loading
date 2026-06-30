@@ -19,12 +19,16 @@ EXPECTED_COUNTS = {
     "50 customers - group 2": (50, 120),
     "100 customers - group 1": (100, 252),
     "100 customers - group 2": (100, 240),
+    "150 customers - group 1": (150, 372),
+    "150 customers - group 2": (150, 361),
+    "200 customers - group 1": (200, 497),
+    "200 customers - group 2": (200, 478),
 }
 
 
 class DatasetUtilityTests(unittest.TestCase):
     def test_all_bundled_demo_datasets_load(self) -> None:
-        self.assertEqual(len(DEMO_DATASET_FILES), 4)
+        self.assertEqual(len(DEMO_DATASET_FILES), 8)
         self.assertEqual(demo_dataset_options(), list(EXPECTED_COUNTS))
 
         for label, (expected_customers, expected_boxes) in EXPECTED_COUNTS.items():

@@ -30,7 +30,7 @@ class PackingAndGATests(unittest.TestCase):
         self.assertFalse(placements_overlap(placements[0], placements[1]))
 
     def test_proposed_ga_returns_routes_history_and_metadata(self) -> None:
-        bundle = load_demo_dataset("50 customers - group 1111 (XML50_1111_01)")
+        bundle = load_demo_dataset("50 customers - group 1")
         preset = get_preset("Medium Cargo Truck")
         result = run_proposed_ga(
             bundle.data,
@@ -59,7 +59,7 @@ class PackingAndGATests(unittest.TestCase):
         self.assertIn("color", first_placement)
 
     def test_route_splitting_uses_truck_packability_not_fixed_box_count(self) -> None:
-        bundle = load_demo_dataset("50 customers - group 1111 (XML50_1111_01)")
+        bundle = load_demo_dataset("50 customers - group 1")
         preset = get_preset("City Mini Truck")
         result = run_proposed_ga(
             bundle.data,
@@ -95,7 +95,7 @@ class PackingAndGATests(unittest.TestCase):
         )
 
     def test_search_uses_fast_estimator_before_exact_final_packing(self) -> None:
-        bundle = load_demo_dataset("50 customers - group 1111 (XML50_1111_01)")
+        bundle = load_demo_dataset("50 customers - group 1")
         preset = get_preset("City Mini Truck")
         config = ProposedGAConfig(population_size=10, generations=2, seed=11)
 
@@ -177,6 +177,10 @@ class PackingAndGATests(unittest.TestCase):
         self.assertIn("camera.lookAt(0, 0, 0)", html)
         self.assertIn("Front", html)
         self.assertIn("Back", html)
+        self.assertIn("M PLUS Code Latin", html)
+        self.assertIn("VT323", html)
+        self.assertNotIn("IBM Plex Mono", html)
+        self.assertNotIn("Space Grotesk", html)
         self.assertIn("const fixedPitch", html)
         self.assertNotIn("viewPitch += dy", html)
         self.assertNotIn("clientY - lastPointer.y", html)

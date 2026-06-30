@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import Any
 
 
-MAX_REAL_CUSTOMERS = 100
+MAX_REAL_CUSTOMERS = 200
 
 
 @dataclass(frozen=True)
