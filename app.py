@@ -1443,14 +1443,15 @@ gradio-app {
     position: relative;
     overflow: hidden;
     background:
-        linear-gradient(135deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.035) 38%, rgba(255, 255, 255, 0.015)),
-        linear-gradient(180deg, rgba(125, 246, 239, 0.055), rgba(5, 9, 13, 0.12)),
-        rgba(12, 19, 26, 0.68) !important;
-    border-color: rgba(178, 246, 242, 0.2) !important;
+        linear-gradient(145deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.018) 42%, rgba(255, 255, 255, 0.006)),
+        linear-gradient(180deg, rgba(125, 246, 239, 0.026), rgba(5, 9, 13, 0.08)),
+        rgba(11, 18, 24, 0.72) !important;
+    border-color: rgba(178, 246, 242, 0.16) !important;
     box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.18),
-        inset 0 -18px 42px rgba(0, 0, 0, 0.16),
-        0 22px 70px rgba(0, 0, 0, 0.28) !important;
+        inset 0 1px 0 rgba(255, 255, 255, 0.11),
+        inset 1px 0 0 rgba(255, 255, 255, 0.045),
+        inset 0 -18px 42px rgba(0, 0, 0, 0.11),
+        0 18px 54px rgba(0, 0, 0, 0.24) !important;
 }
 
 .command-panel::before,
@@ -1468,9 +1469,9 @@ gradio-app {
     inset: 0;
     pointer-events: none;
     background:
-        linear-gradient(118deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.035) 18%, transparent 34%),
-        linear-gradient(180deg, rgba(255, 255, 255, 0.075), transparent 42%);
-    opacity: 0.9;
+        linear-gradient(118deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.016) 16%, transparent 30%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.028), transparent 34%);
+    opacity: 0.58;
 }
 
 .command-panel > *,
@@ -1488,38 +1489,41 @@ gradio-app {
 }
 
 .gradio-container input[type="range"] {
-    height: 8px !important;
+    width: 100% !important;
+    height: 10px !important;
     accent-color: #22d3c5 !important;
     cursor: pointer;
+    background: transparent !important;
+    padding: 0 !important;
 }
 
 .gradio-container input[type="range"]::-webkit-slider-runnable-track {
-    height: 8px;
+    height: 10px;
     border-radius: 999px;
-    background: linear-gradient(90deg, #22d3c5, #8ffff3);
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+    background: rgba(126, 145, 156, 0.18);
+    box-shadow: inset 0 0 0 1px rgba(178, 246, 242, 0.08);
 }
 
 .gradio-container input[type="range"]::-webkit-slider-thumb {
     appearance: none;
-    width: 22px;
-    height: 22px;
+    width: 24px;
+    height: 24px;
     margin-top: -7px;
     border-radius: 50%;
-    border: 3px solid #e7fffb;
-    background: radial-gradient(circle at 32% 28%, #ffffff, #22d3c5 58%, #087a76);
-    box-shadow: 0 0 0 4px rgba(34, 211, 197, 0.18), 0 8px 18px rgba(0, 0, 0, 0.38);
+    border: 4px solid #e7fffb;
+    background: radial-gradient(circle at 32% 28%, #ffffff, #35ead9 58%, #087a76);
+    box-shadow: 0 0 0 5px rgba(34, 211, 197, 0.18), 0 8px 18px rgba(0, 0, 0, 0.38);
 }
 
 .gradio-container input[type="range"]::-moz-range-track {
-    height: 8px;
+    height: 10px;
     border-radius: 999px;
-    background: linear-gradient(90deg, #22d3c5, #8ffff3);
+    background: rgba(126, 145, 156, 0.18);
 }
 
 .gradio-container input[type="range"]::-moz-range-thumb {
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
     border: 3px solid #e7fffb;
     background: #22d3c5;
     box-shadow: 0 0 0 4px rgba(34, 211, 197, 0.18);
@@ -1558,8 +1562,54 @@ gradio-app {
 .command-cell .form,
 .command-cell .wrap,
 .command-cell .container {
-    background: rgba(255, 255, 255, 0.025) !important;
+    background: transparent !important;
+    background-color: transparent !important;
     box-shadow: none !important;
+}
+
+/* M5.7 control cleanup: remove Gradio's nested grey wrapper slabs. */
+.command-cell .block,
+.command-cell .form,
+.command-cell .wrap,
+.command-cell .container,
+.command-cell .input-container,
+.command-cell .radio,
+.command-cell .checkbox-group,
+.command-cell .secondary-wrap,
+.command-cell [data-testid="radio-group"],
+.command-cell [data-testid="checkbox-group"],
+.command-cell [data-testid="dropdown"] {
+    background: transparent !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+}
+
+.command-cell .block,
+.command-cell .form,
+.command-cell .wrap,
+.command-cell .container,
+.command-cell [data-testid="radio-group"],
+.command-cell [data-testid="dropdown"] {
+    border-color: transparent !important;
+}
+
+.command-cell [data-testid="dropdown"] input,
+.command-cell select,
+.command-cell input[type="text"] {
+    border: 1px solid rgba(178, 246, 242, 0.12) !important;
+    border-radius: 8px !important;
+    background: rgba(255, 255, 255, 0.045) !important;
+    color: #e7f1f4 !important;
+}
+
+.command-cell .slider,
+.command-cell [data-testid="slider"] {
+    background: transparent !important;
+}
+
+.command-cell .slider input[type="range"],
+.command-cell [data-testid="slider"] input[type="range"] {
+    margin-inline: 0 !important;
 }
 
 .selected-preview,
@@ -1666,7 +1716,7 @@ gradio-app {
 
 BOX_PREVIEW_HEADERS = ["Box", "Dimensions", "Volume"]
 ROUTE_PREVIEW_HEADERS = ["Route / stop", "Customers", "Distance / location", "Boxes", "Status"]
-BUILD_LABEL = "M5.6 final UI polish build"
+BUILD_LABEL = "M5.7 final control polish build"
 
 
 def default_demo_label() -> str:
@@ -1676,7 +1726,7 @@ def default_demo_label() -> str:
 def build_badge_html() -> str:
     return f"""
     <div class="build-badge">
-        <span>{BUILD_LABEL} | fresh-server validation target: 127.0.0.1:7865+</span>
+        <span>{BUILD_LABEL} | fresh-server validation target: 127.0.0.1:7866+</span>
         <span>No baseline models | Proposed GA only | Quick defaults 10 x 2</span>
     </div>
     """
@@ -2558,7 +2608,7 @@ def build_app() -> gr.Blocks:
                                 2,
                                 60,
                                 value=2,
-                                step=10,
+                                step=1,
                                 label="Generations",
                                 interactive=True,
                             )
