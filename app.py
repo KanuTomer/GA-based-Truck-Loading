@@ -9,6 +9,15 @@ from pathlib import Path
 
 import gradio as gr
 
+from truck_loading.data import (
+    DatasetBundle,
+    DatasetError,
+    box_preview_rows,
+    demo_dataset_options,
+    format_truck_dimensions,
+    load_demo_dataset,
+    load_uploaded_dataset,
+)
 from truck_loading.presets import (
     ASSET_ROOT,
     default_variant_name,
@@ -204,6 +213,55 @@ main,
 
 .truck-details table {
     margin-top: 0.65rem !important;
+}
+
+.dataset-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.dataset-card {
+    min-height: 92px;
+    border: 1px solid rgba(17, 20, 23, 0.1);
+    border-radius: 12px;
+    background:
+        linear-gradient(145deg, rgba(34, 211, 197, 0.08), transparent 46%),
+        #ffffff;
+    padding: 12px;
+}
+
+.dataset-card-label {
+    color: #66737e;
+    font-size: 0.72rem;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.dataset-card-value {
+    margin-top: 7px;
+    color: #151b20;
+    font-size: 1.08rem;
+    font-weight: 900;
+    line-height: 1.25;
+}
+
+.dataset-card-note {
+    margin-top: 5px;
+    color: #657480;
+    font-size: 0.8rem;
+    line-height: 1.35;
+}
+
+.dataset-warning {
+    margin-top: 10px;
+    border: 1px solid rgba(247, 201, 72, 0.44);
+    border-radius: 12px;
+    background: rgba(247, 201, 72, 0.14);
+    color: #4d3a06;
+    padding: 10px 12px;
+    font-size: 0.86rem;
+    font-weight: 800;
 }
 
 .stage-panel {
@@ -500,6 +558,7 @@ main,
 
     .hero-strip,
     .metric-grid,
+    .dataset-summary-grid,
     .truck-card-grid {
         grid-template-columns: 1fr;
     }
@@ -528,16 +587,116 @@ main,
 """
 
 
-def dataset_helper(source: str) -> str:
+BOX_PREVIEW_HEADERS = ["Box", "Dimensions", "Volume"]
+
+
+def default_demo_label() -> str:
+    return demo_dataset_options()[0]
+
+
+def current_dataset_bundle(
+    source: str,
+    demo_label: str | None,
+    uploaded_file,
+) -> DatasetBundle | None:
     if source == "Upload dataset":
+        return load_uploaded_dataset(uploaded_file)
+    return load_demo_dataset(demo_label)
+
+
+def dataset_helper(source: str, bundle: DatasetBundle | None = None, error: str | None = None) -> str:
+    if error:
         return (
-            "### Upload dataset\n"
-            "Accepted in later milestones: internal 3L-SDVRP JSON or VRP file. "
-            "This shell keeps the upload control visible without parsing files yet."
+            f"### {source}\n"
+            f"{error}\n\n"
+            "Expected JSON schema: top-level `customers`, `boxes`, and `container`."
         )
+
+    if source == "Upload dataset":
+        if bundle is None:
+            return (
+                "### Upload dataset\n"
+                "Upload a normalized 3L-SDVRP JSON dataset to preview customers, boxes, "
+                "container dimensions, and warnings."
+            )
+        return f"### Upload dataset\nLoaded **{bundle.summary.instance_name}**."
+
+    if bundle is None:
+        return "### Demo dataset\nChoose one of the bundled 50/100 customer demo datasets."
     return (
         "### Demo dataset\n"
-        "A curated small demo dataset will be bundled in a later milestone for instant playback."
+        f"Loaded **{bundle.summary.instance_name}** from the bundled conference batch."
+    )
+
+
+def dataset_summary_html(bundle: DatasetBundle | None, error: str | None = None) -> str:
+    if error:
+        return f"""
+        <div class="dataset-warning">{escape(error)}</div>
+        """
+    if bundle is None:
+        return """
+        <div class="dataset-warning">
+            Upload a normalized JSON dataset or choose a bundled demo dataset.
+        </div>
+        """
+
+    summary = bundle.summary
+    cards = [
+        ("Customers", f"{summary.real_customer_count}", f"{summary.customer_count} rows including depot"),
+        ("Boxes", f"{summary.box_count}", f"Per customer: {summary.boxes_per_customer_display}"),
+        ("Container", summary.container_dimensions_display, "Displayed as meters / feet"),
+        ("Box volume", summary.total_box_volume_display, f"Estimated fill: {summary.fill_percentage:.1f}%"),
+    ]
+    items = "\n".join(
+        f"""
+        <div class="dataset-card">
+            <div class="dataset-card-label">{escape(label)}</div>
+            <div class="dataset-card-value">{escape(value)}</div>
+            <div class="dataset-card-note">{escape(note)}</div>
+        </div>
+        """
+        for label, value, note in cards
+    )
+
+    warnings = []
+    if summary.thin_box_count:
+        warnings.append(
+            f"{summary.thin_box_count} thin boxes detected; small dimensions are shown in cm/inches."
+        )
+    if summary.oversized_box_count:
+        warnings.append(f"{summary.oversized_box_count} boxes exceed the source container.")
+    warning_html = (
+        f'<div class="dataset-warning">{" ".join(escape(warning) for warning in warnings)}</div>'
+        if warnings
+        else ""
+    )
+    return f'<div class="dataset-summary-grid">{items}</div>{warning_html}'
+
+
+def dataset_outputs(
+    source: str,
+    demo_label: str | None,
+    uploaded_file,
+    truck_name: str,
+    variant_name: str,
+):
+    try:
+        bundle = current_dataset_bundle(source, demo_label, uploaded_file)
+    except DatasetError as exc:
+        error = str(exc)
+        return (
+            dataset_helper(source, error=error),
+            dataset_summary_html(None, error=error),
+            [],
+            ready_status(source, truck_name, variant_name),
+        )
+
+    return (
+        dataset_helper(source, bundle=bundle),
+        dataset_summary_html(bundle),
+        box_preview_rows(bundle),
+        ready_status(source, truck_name, variant_name, dataset_label=bundle.summary.instance_name),
     )
 
 
@@ -552,7 +711,7 @@ def selected_asset_html(truck_name: str, variant_name: str) -> str:
     preset = get_preset(truck_name)
     variant = preset.get_variant(variant_name)
     preview_src = image_data_uri(preview_path_for(preset.name, variant.name))
-    dims = f"{preset.length_mm:,} x {preset.width_mm:,} x {preset.height_mm:,} mm"
+    dims = format_truck_dimensions(preset.length_mm, preset.width_mm, preset.height_mm)
 
     return f"""
     <div class="asset-preview-band">
@@ -569,55 +728,92 @@ def selected_asset_html(truck_name: str, variant_name: str) -> str:
     """
 
 
-def ready_status(source: str, truck_name: str, variant_name: str) -> str:
+def ready_status(
+    source: str,
+    truck_name: str,
+    variant_name: str,
+    dataset_label: str | None = None,
+) -> str:
     preset = get_preset(truck_name)
-    dims = f"{preset.length_mm:,} x {preset.width_mm:,} x {preset.height_mm:,} mm"
+    dims = format_truck_dimensions(preset.length_mm, preset.width_mm, preset.height_mm)
+    dataset_text = dataset_label or ("Awaiting upload" if source == "Upload dataset" else default_demo_label())
     return (
         "### Ready for visual run setup\n"
         f"Dataset source: **{source}**\n\n"
+        f"Dataset: **{dataset_text}**\n\n"
         f"Truck class: **{preset.name}**\n\n"
         f"Body style: **{variant_name}**\n\n"
         f"Internal load space: **{dims}**"
     )
 
 
-def update_dataset_source(source: str):
-    return dataset_helper(source), gr.update(visible=source == "Upload dataset")
+def update_dataset_source(source: str, demo_label: str, uploaded_file, truck_name: str, variant_name: str):
+    helper, summary, preview, status = dataset_outputs(
+        source, demo_label, uploaded_file, truck_name, variant_name
+    )
+    return (
+        helper,
+        gr.update(visible=source == "Upload dataset"),
+        gr.update(visible=source == "Demo dataset"),
+        summary,
+        preview,
+        status,
+    )
 
 
-def update_truck_class(source: str, truck_name: str):
+def update_dataset_selection(source: str, demo_label: str, uploaded_file, truck_name: str, variant_name: str):
+    return dataset_outputs(source, demo_label, uploaded_file, truck_name, variant_name)
+
+
+def update_truck_class(source: str, demo_label: str, uploaded_file, truck_name: str):
     selected_variant = default_variant_name(truck_name)
+    try:
+        bundle = current_dataset_bundle(source, demo_label, uploaded_file)
+        dataset_label = bundle.summary.instance_name if bundle else None
+    except DatasetError:
+        dataset_label = None
     return (
         gr.update(choices=variant_names(truck_name), value=selected_variant),
         format_dimensions(truck_name),
         truck_cards_html(truck_name),
         model_path_for(truck_name, selected_variant),
         selected_asset_html(truck_name, selected_variant),
-        ready_status(source, truck_name, selected_variant),
+        ready_status(source, truck_name, selected_variant, dataset_label=dataset_label),
     )
 
 
-def update_body_style(source: str, truck_name: str, variant_name: str):
+def update_body_style(source: str, demo_label: str, uploaded_file, truck_name: str, variant_name: str):
+    try:
+        bundle = current_dataset_bundle(source, demo_label, uploaded_file)
+        dataset_label = bundle.summary.instance_name if bundle else None
+    except DatasetError:
+        dataset_label = None
     return (
         model_path_for(truck_name, variant_name),
         selected_asset_html(truck_name, variant_name),
-        ready_status(source, truck_name, variant_name),
+        ready_status(source, truck_name, variant_name, dataset_label=dataset_label),
     )
 
 
-def run_placeholder(source: str, truck_name: str, variant_name: str) -> str:
+def run_placeholder(source: str, demo_label: str, uploaded_file, truck_name: str, variant_name: str) -> str:
     preset = get_preset(truck_name)
     variant = preset.get_variant(variant_name)
-    dims = f"{preset.length_mm:,} x {preset.width_mm:,} x {preset.height_mm:,} mm"
+    dims = format_truck_dimensions(preset.length_mm, preset.width_mm, preset.height_mm)
+    try:
+        bundle = current_dataset_bundle(source, demo_label, uploaded_file)
+        dataset_label = bundle.summary.instance_name if bundle else "Awaiting dataset"
+    except DatasetError as exc:
+        dataset_label = f"Unavailable ({exc})"
 
     return (
         "### Proposed GA run queued for a later milestone\n"
         f"Dataset source: **{source}**\n\n"
+        f"Dataset: **{dataset_label}**\n\n"
         f"Truck class: **{preset.name}**\n\n"
         f"Indian-equivalent class: **{preset.indian_equivalent}**\n\n"
         f"Body style: **{variant.name}**\n\n"
         f"Internal load space: **{dims}**\n\n"
-        "Validation, solver execution, and animated box loading remain placeholders in M2."
+        "Validation, solver execution, and animated box loading remain placeholders in M3."
     )
 
 
@@ -676,8 +872,7 @@ def truck_cards_html(selected_name: str) -> str:
                 <div class="truck-card-kicker">{escape(preset.indian_equivalent)}</div>
                 <div class="truck-card-title">{escape(preset.name)}</div>
                 <div class="truck-card-dims">
-                    {preset.length_ft:g} ft x {preset.width_ft:g} ft x {preset.height_ft:g} ft<br>
-                    {preset.length_mm:,} x {preset.width_mm:,} x {preset.height_mm:,} mm
+                    {escape(format_truck_dimensions(preset.length_mm, preset.width_mm, preset.height_mm))}
                 </div>
                 <div class="truck-card-bodies">{bodies}</div>
             </div>
@@ -725,6 +920,8 @@ def metrics_html() -> str:
 def build_app() -> gr.Blocks:
     default_truck = preset_names()[0]
     default_variant = default_variant_name(default_truck)
+    default_dataset = default_demo_label()
+    default_bundle = load_demo_dataset(default_dataset)
 
     with gr.Blocks(title="GA-Based Truck Loading") as demo:
         with gr.Column(elem_classes=["app-shell"]):
@@ -740,12 +937,25 @@ def build_app() -> gr.Blocks:
                     )
                     upload_file = gr.File(
                         label="Dataset file",
-                        file_types=[".json", ".vrp"],
+                        file_types=[".json"],
                         visible=False,
                     )
+                    demo_dataset = gr.Dropdown(
+                        choices=demo_dataset_options(),
+                        value=default_dataset,
+                        label="Demo dataset",
+                    )
                     dataset_status = gr.Markdown(
-                        dataset_helper("Demo dataset"),
+                        dataset_helper("Demo dataset", bundle=default_bundle),
                         elem_classes=["truck-details"],
+                    )
+                    dataset_summary = gr.HTML(dataset_summary_html(default_bundle))
+                    box_preview = gr.Dataframe(
+                        headers=BOX_PREVIEW_HEADERS,
+                        value=box_preview_rows(default_bundle),
+                        label="Box preview",
+                        interactive=False,
+                        wrap=True,
                     )
 
                     gr.Markdown("## Truck selector")
@@ -793,7 +1003,12 @@ def build_app() -> gr.Blocks:
 
                     run_button = gr.Button("Prepare visual run", variant="primary")
                     run_status = gr.Markdown(
-                        ready_status("Demo dataset", default_truck, default_variant),
+                        ready_status(
+                            "Demo dataset",
+                            default_truck,
+                            default_variant,
+                            dataset_label=default_bundle.summary.instance_name,
+                        ),
                         elem_classes=["run-status"],
                     )
 
@@ -838,12 +1053,29 @@ def build_app() -> gr.Blocks:
 
         dataset_source.change(
             fn=update_dataset_source,
-            inputs=dataset_source,
-            outputs=[dataset_status, upload_file],
+            inputs=[dataset_source, demo_dataset, upload_file, truck_preset, truck_variant],
+            outputs=[
+                dataset_status,
+                upload_file,
+                demo_dataset,
+                dataset_summary,
+                box_preview,
+                run_status,
+            ],
+        )
+        demo_dataset.change(
+            fn=update_dataset_selection,
+            inputs=[dataset_source, demo_dataset, upload_file, truck_preset, truck_variant],
+            outputs=[dataset_status, dataset_summary, box_preview, run_status],
+        )
+        upload_file.change(
+            fn=update_dataset_selection,
+            inputs=[dataset_source, demo_dataset, upload_file, truck_preset, truck_variant],
+            outputs=[dataset_status, dataset_summary, box_preview, run_status],
         )
         truck_preset.change(
             fn=update_truck_class,
-            inputs=[dataset_source, truck_preset],
+            inputs=[dataset_source, demo_dataset, upload_file, truck_preset],
             outputs=[
                 truck_variant,
                 truck_dimensions,
@@ -855,12 +1087,12 @@ def build_app() -> gr.Blocks:
         )
         truck_variant.change(
             fn=update_body_style,
-            inputs=[dataset_source, truck_preset, truck_variant],
+            inputs=[dataset_source, demo_dataset, upload_file, truck_preset, truck_variant],
             outputs=[truck_model, variant_description, run_status],
         )
         run_button.click(
             fn=run_placeholder,
-            inputs=[dataset_source, truck_preset, truck_variant],
+            inputs=[dataset_source, demo_dataset, upload_file, truck_preset, truck_variant],
             outputs=run_status,
         )
 

@@ -32,6 +32,7 @@ license is included under `assets/kenney-car-kit/License.txt`.
 
 ## Development Status
 
-Milestone 2 adds an asset-backed two-truck selector with Kenney `.glb` previews.
-Solver code, validation, dataset parsing, and animated box loading will be added
-in later milestones.
+Milestone 3 adds bundled 50/100 customer demo datasets, JSON dataset summaries,
+adaptive box dimension display, and accessible truck/container units. Solver
+code, validation execution, and animated box loading will be added in later
+milestones.

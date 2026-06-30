@@ -5,6 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
+from truck_loading.data.units import format_truck_dimensions
+
 
 ASSET_ROOT = Path(__file__).resolve().parent.parent / "assets" / "kenney-car-kit"
 MODEL_ROOT = ASSET_ROOT / "models"
@@ -156,19 +158,19 @@ def format_dimensions(name: str | None) -> str:
         f"**Body styles:** {variants}\n\n"
         f"| Unit | Length | Width | Height |\n"
         f"|---|---:|---:|---:|\n"
-        f"| Feet | {preset.length_ft:g} | {preset.width_ft:g} | {preset.height_ft:g} |\n"
-        f"| Millimeters | {preset.length_mm:,} | {preset.width_mm:,} | {preset.height_mm:,} |"
+        f"| Meters | {preset.length_mm / 1000:.1f} | {preset.width_mm / 1000:.1f} | {preset.height_mm / 1000:.1f} |\n"
+        f"| Feet | {preset.length_mm / 304.8:.1f} | {preset.width_mm / 304.8:.1f} | {preset.height_mm / 304.8:.1f} |"
     )
 
 
 def format_variant_description(preset_name: str | None, variant_name: str | None = None) -> str:
     preset = get_preset(preset_name)
     variant = preset.get_variant(variant_name)
-    dims = f"{preset.length_mm:,} x {preset.width_mm:,} x {preset.height_mm:,} mm"
+    display_dims = format_truck_dimensions(preset.length_mm, preset.width_mm, preset.height_mm)
 
     return (
         f"### {variant.name}\n"
         f"{variant.description}\n\n"
         f"**Truck class:** {preset.name}\n\n"
-        f"**Internal load space:** {dims}"
+        f"**Internal load space:** {display_dims}"
     )
