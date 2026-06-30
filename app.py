@@ -1612,6 +1612,111 @@ gradio-app {
     margin-inline: 0 !important;
 }
 
+/* M5.8 global cleanup: keep Gradio wrappers invisible outside real surfaces. */
+.app-shell .wrap,
+.app-shell .block,
+.app-shell .form,
+.app-shell .container,
+.app-shell .input-container,
+.app-shell .table-wrap,
+.app-shell .dataframe,
+.app-shell .plot-container,
+.app-shell .plot,
+.stage-viewer-panel .wrap,
+.stage-viewer-panel .block,
+.stage-viewer-panel .form,
+.stage-viewer-panel .container,
+.run-output-strip .wrap,
+.run-output-strip .block,
+.run-output-strip .form,
+.run-output-strip .container,
+.result-panel .wrap,
+.result-panel .block,
+.result-panel .form,
+.result-panel .container,
+.secondary-panel .wrap,
+.secondary-panel .block,
+.secondary-panel .form,
+.secondary-panel .container,
+.metrics-strip-panel .wrap,
+.metrics-strip-panel .block,
+.metrics-strip-panel .form,
+.metrics-strip-panel .container,
+.packing-viewer-section .wrap,
+.packing-viewer-section .block,
+.packing-viewer-section .form,
+.packing-viewer-section .container {
+    background: transparent !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+}
+
+.app-shell .wrap,
+.app-shell .block,
+.app-shell .form,
+.app-shell .container,
+.app-shell .input-container,
+.app-shell .table-wrap,
+.app-shell .dataframe,
+.app-shell .plot-container,
+.app-shell .plot {
+    border-color: transparent !important;
+}
+
+.stage-viewer-panel .result-header,
+.stage-viewer-panel .packing-viewer-section,
+.run-output-strip,
+.metrics-strip-panel .metric-grid,
+.secondary-panel .dataset-summary-grid,
+.secondary-panel .download-grid {
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+.app-shell .metric-card,
+.app-shell .dataset-card,
+.app-shell .download-chip,
+.app-shell .validation-item,
+.app-shell .run-status,
+.app-shell .dataset-warning,
+.app-shell .asset-preview-band,
+.app-shell .truck-details {
+    border-color: rgba(178, 246, 242, 0.16) !important;
+}
+
+.secondary-panel table,
+.secondary-panel td,
+.secondary-panel th {
+    background: rgba(5, 10, 14, 0.82) !important;
+    border-color: rgba(125, 246, 239, 0.12) !important;
+    color: #e7f1f4 !important;
+}
+
+.secondary-panel thead th,
+.secondary-panel table th {
+    background: rgba(7, 14, 19, 0.94) !important;
+    color: #f4f7f9 !important;
+}
+
+.secondary-panel .dataframe,
+.secondary-panel .table-wrap,
+.secondary-panel .plot-container,
+.secondary-panel .plot,
+.secondary-panel canvas,
+.secondary-panel svg {
+    border-radius: 12px !important;
+    overflow: hidden !important;
+}
+
+.stage-viewer-panel .result-pill {
+    background: rgba(34, 211, 197, 0.12) !important;
+    border-color: rgba(34, 211, 197, 0.32) !important;
+}
+
+.packing-viewer-frame {
+    background: #05090d !important;
+}
+
 .selected-preview,
 .truck-thumb {
     overflow: hidden;
@@ -1716,7 +1821,7 @@ gradio-app {
 
 BOX_PREVIEW_HEADERS = ["Box", "Dimensions", "Volume"]
 ROUTE_PREVIEW_HEADERS = ["Route / stop", "Customers", "Distance / location", "Boxes", "Status"]
-BUILD_LABEL = "M5.7 final control polish build"
+BUILD_LABEL = "M5.8 global wrapper cleanup build"
 
 
 def default_demo_label() -> str:
@@ -1726,7 +1831,7 @@ def default_demo_label() -> str:
 def build_badge_html() -> str:
     return f"""
     <div class="build-badge">
-        <span>{BUILD_LABEL} | fresh-server validation target: 127.0.0.1:7866+</span>
+        <span>{BUILD_LABEL} | fresh-server validation target: 127.0.0.1:7867+</span>
         <span>No baseline models | Proposed GA only | Quick defaults 10 x 2</span>
     </div>
     """

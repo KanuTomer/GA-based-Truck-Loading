@@ -1,3 +1,13 @@
+---
+title: GA-Based Truck Loading
+emoji: 🚚
+colorFrom: cyan
+colorTo: teal
+sdk: gradio
+app_file: app.py
+pinned: false
+---
+
 # GA-Based Truck Loading
 
 Portfolio-style visual demo for a genetic-algorithm-based truck loading and route-packing workflow.
@@ -35,3 +45,17 @@ license is included under `assets/kenney-car-kit/License.txt`.
 Milestone 5 connects a capped proposed-GA runtime, real rotation-enabled packing
 placements, downloadable run artifacts, and an animated procedural 3D truck
 loading viewer.
+
+## Running And Hosting
+
+Run locally with:
+
+```powershell
+python app.py
+```
+
+The app is prepared for Hugging Face Spaces with Gradio SDK metadata in this
+README and dependencies in `requirements.txt`. The intended quick visual demo
+settings are population `10` and generations `2`; larger runs are available but
+may be slower on free CPU hosting. Free Spaces are suitable for this personal
+demo, with the expectation that the app can sleep when unused.

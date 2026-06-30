@@ -77,11 +77,11 @@ html, body {{
   pointer-events: none;
 }}
 .panel {{
-  border: 1px solid rgba(255,255,255,0.13);
+  border: 1px solid rgba(178,246,242,0.16);
   border-radius: 12px;
-  background: rgba(11, 15, 18, 0.72);
+  background: rgba(5, 10, 14, 0.66);
   backdrop-filter: blur(12px);
-  box-shadow: 0 18px 42px rgba(0,0,0,0.28);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 14px 34px rgba(0,0,0,0.22);
   padding: 10px;
   pointer-events: auto;
 }}
@@ -110,9 +110,9 @@ html, body {{
   justify-content: flex-end;
 }}
 button, select {{
-  border: 1px solid rgba(255,255,255,.16);
+  border: 1px solid rgba(178,246,242,.18);
   border-radius: 10px;
-  background: rgba(12, 18, 23, .92);
+  background: rgba(5, 10, 14, .88);
   color: #edf7f6;
   font: 700 12px "IBM Plex Mono", monospace;
   padding: 7px 9px;
@@ -145,7 +145,7 @@ button:hover, select:hover {{
 }}
 .speed-button.active {{
   border-color: rgba(34, 211, 197, .82);
-  background: rgba(34, 211, 197, .2);
+  background: rgba(34, 211, 197, .18);
   color: #ffffff;
 }}
 .tooltip {{
