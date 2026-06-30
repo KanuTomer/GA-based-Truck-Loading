@@ -66,13 +66,13 @@ html, body {{
 }}
 .hud {{
   position: absolute;
-  left: 16px;
-  right: 16px;
-  top: 14px;
+  left: 14px;
+  right: 14px;
+  top: 12px;
   z-index: 5;
   display: grid;
   grid-template-columns: 1fr auto;
-  gap: 12px;
+  gap: 10px;
   align-items: start;
   pointer-events: none;
 }}
@@ -82,7 +82,7 @@ html, body {{
   background: rgba(11, 15, 18, 0.72);
   backdrop-filter: blur(12px);
   box-shadow: 0 18px 42px rgba(0,0,0,0.28);
-  padding: 12px;
+  padding: 10px;
   pointer-events: auto;
 }}
 .kicker {{
@@ -94,14 +94,14 @@ html, body {{
 }}
 .title {{
   margin-top: 4px;
-  font-size: 22px;
+  font-size: 18px;
   font-weight: 800;
   line-height: 1.05;
 }}
 .meta {{
-  margin-top: 8px;
+  margin-top: 6px;
   color: #bac8d1;
-  font-size: 13px;
+  font-size: 11px;
 }}
 .controls {{
   display: flex;
@@ -112,13 +112,29 @@ html, body {{
 button, select {{
   border: 1px solid rgba(255,255,255,.16);
   border-radius: 10px;
-  background: rgba(255,255,255,.08);
+  background: rgba(12, 18, 23, .92);
   color: #edf7f6;
   font: 700 12px "IBM Plex Mono", monospace;
-  padding: 8px 10px;
+  padding: 7px 9px;
+  color-scheme: dark;
 }}
 select {{
   max-width: 250px;
+  min-width: 250px;
+  appearance: none;
+  padding-right: 34px;
+  background:
+    linear-gradient(45deg, transparent 50%, #e7f1f4 50%) calc(100% - 16px) 50% / 7px 7px no-repeat,
+    linear-gradient(135deg, #e7f1f4 50%, transparent 50%) calc(100% - 11px) 50% / 7px 7px no-repeat,
+    rgba(12, 18, 23, .94);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}}
+select option {{
+  background: #0b1117;
+  color: #edf7f6;
+  font: 700 13px "IBM Plex Mono", monospace;
 }}
 button:hover, select:hover {{
   border-color: rgba(34, 211, 197, .66);
@@ -234,7 +250,7 @@ let speed = 1;
 let dragging = false;
 let lastPointer = {{ x: 0, y: 0 }};
 let viewYaw = -0.18;
-let viewPitch = -0.08;
+const fixedPitch = -0.08;
 
 const dims = payload.container;
 const axisLabels = payload.axis_labels || {{}};
@@ -242,9 +258,12 @@ const scale = 1 / 1000;
 const L = dims.L * scale;
 const W = dims.W * scale;
 const H = dims.H * scale;
+const center = new THREE.Vector3(L / 2, H / 2, W / 2);
 
 function buildContainer() {{
   root.clear();
+  root.position.set(-center.x, -center.y, -center.z);
+  boxesGroup.position.set(-center.x, -center.y, -center.z);
   const geometry = new THREE.BoxGeometry(L, H, W);
   const edges = new THREE.EdgesGeometry(geometry);
   const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({{ color: 0x22d3c5, transparent: true, opacity: 0.86 }}));
@@ -276,23 +295,24 @@ function buildContainer() {{
     new THREE.Vector3(-0.12, H, W + 0.1),
     new THREE.Vector3(0.12, 0, 0)
   );
+  root.add(makeLabel('Back', -0.18, H + 0.16, W / 2));
+  root.add(makeLabel('Front', L + 0.18, H + 0.16, W / 2));
 }}
 
 function setCamera() {{
   const longest = Math.max(L, W, H);
-  camera.position.set(L * 0.92, Math.max(H * 1.65, longest * 0.9, 2.4), W * 1.85 + longest * 0.55);
-  camera.lookAt(L / 2, H * 0.42, W / 2);
+  camera.position.set(longest * 0.82, Math.max(H * 1.28, longest * 0.62, 1.8), longest * 1.42);
+  camera.lookAt(0, 0, 0);
 }}
 
 function resetView() {{
   viewYaw = -0.18;
-  viewPitch = -0.08;
   applyViewRotation();
   setCamera();
 }}
 
 function applyViewRotation() {{
-  sceneGroup.rotation.set(viewPitch, viewYaw, 0);
+  sceneGroup.rotation.set(fixedPitch, viewYaw, 0);
 }}
 
 function addLine(start, end, color = 0x7ff6ef, opacity = 0.9) {{
@@ -446,10 +466,8 @@ renderer.domElement.addEventListener('pointerdown', event => {{
 renderer.domElement.addEventListener('pointermove', event => {{
   if (!dragging) return;
   const dx = event.clientX - lastPointer.x;
-  const dy = event.clientY - lastPointer.y;
   lastPointer = {{ x: event.clientX, y: event.clientY }};
   viewYaw += dx * 0.006;
-  viewPitch = Math.max(-0.62, Math.min(0.42, viewPitch + dy * 0.004));
   applyViewRotation();
 }});
 renderer.domElement.addEventListener('pointerup', event => {{

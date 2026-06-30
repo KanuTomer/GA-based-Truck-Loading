@@ -173,6 +173,13 @@ class PackingAndGATests(unittest.TestCase):
 
         self.assertIn("Reset view", html)
         self.assertIn("pointermove", html)
+        self.assertIn("root.position.set(-center.x, -center.y, -center.z)", html)
+        self.assertIn("camera.lookAt(0, 0, 0)", html)
+        self.assertIn("Front", html)
+        self.assertIn("Back", html)
+        self.assertIn("const fixedPitch", html)
+        self.assertNotIn("viewPitch += dy", html)
+        self.assertNotIn("clientY - lastPointer.y", html)
         self.assertNotIn("GridHelper", html)
 
     def test_unplaceable_box_is_reported_as_unpacked(self) -> None:

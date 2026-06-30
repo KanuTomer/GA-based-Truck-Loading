@@ -261,8 +261,9 @@ def _score_order(
 ) -> tuple[float, dict[str, Any]]:
     customer_stats = customer_stats or _build_customer_load_stats(list(customer_map.values()), box_map, container)
     if exact:
-        routes = _decode_by_exact_packability(
-            order,
+        estimated_routes = _decode_by_estimated_capacity(order, customer_stats, container, config)
+        routes = _repair_estimated_routes_by_exact_packability(
+            estimated_routes,
             customer_map,
             box_map,
             container,
@@ -408,6 +409,35 @@ def _decode_by_exact_packability(
     if current:
         routes.append(current)
     return routes
+
+
+def _repair_estimated_routes_by_exact_packability(
+    estimated_routes: list[list[Any]],
+    customer_map: dict[Any, dict[str, Any]],
+    box_map: dict[str, dict[str, Any]],
+    container: dict[str, float],
+    max_boxes_per_route: int,
+    packing_cache: PackingCache | None = None,
+) -> list[list[Any]]:
+    repaired: list[list[Any]] = []
+    for route in estimated_routes:
+        route_boxes = _boxes_for_customers(route, customer_map, box_map)
+        if len(route_boxes) <= max_boxes_per_route:
+            result = _best_packing_result(container, route_boxes, packing_cache)
+            if result["placed_count"] == len(route_boxes):
+                repaired.append(route)
+                continue
+        repaired.extend(
+            _decode_by_exact_packability(
+                route,
+                customer_map,
+                box_map,
+                container,
+                max_boxes_per_route,
+                packing_cache,
+            )
+        )
+    return repaired
 
 
 def _build_customer_load_stats(

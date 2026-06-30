@@ -957,6 +957,174 @@ gradio-app {
     color: #e7f1f4 !important;
 }
 
+/* M5.3/M5.4 cockpit layout and stronger midnight polish */
+.build-badge {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 12px 0;
+    border: 1px solid rgba(125, 246, 239, 0.18);
+    border-radius: 999px;
+    background: rgba(10, 16, 23, 0.62);
+    color: #d9fffb;
+    padding: 10px 14px;
+    font-size: 0.76rem;
+    font-weight: 800;
+    backdrop-filter: blur(16px);
+}
+
+.build-badge span:last-child {
+    color: #8aa0b4;
+}
+
+.cockpit-workspace {
+    display: grid !important;
+    grid-template-columns: minmax(280px, 0.86fr) minmax(460px, 1.55fr) minmax(260px, 0.82fr);
+    align-items: start !important;
+    gap: 14px !important;
+    flex-wrap: nowrap !important;
+}
+
+.cockpit-workspace > div {
+    min-width: 0 !important;
+    width: 100% !important;
+}
+
+.viewer-panel,
+.metrics-panel {
+    border: 1px solid rgba(125, 246, 239, 0.18);
+    border-radius: 14px;
+    background: rgba(10, 16, 23, 0.72);
+    box-shadow: 0 28px 80px rgba(0, 0, 0, 0.28);
+    backdrop-filter: blur(18px);
+    padding: 14px;
+}
+
+.viewer-panel {
+    min-height: 0 !important;
+}
+
+.viewer-panel .result-header {
+    display: block;
+    margin-bottom: 10px;
+}
+
+.viewer-panel .result-title {
+    color: #e7f1f4;
+    font-size: 1.25rem;
+}
+
+.viewer-panel .result-copy {
+    color: #9fb0bb;
+    font-size: 0.8rem;
+}
+
+.viewer-panel .result-pill {
+    display: inline-block;
+    margin-top: 10px;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.viewer-panel .packing-viewer-section {
+    margin-top: 0;
+}
+
+.viewer-panel .packing-viewer-section h3 {
+    display: none;
+}
+
+.viewer-panel .packing-viewer-frame {
+    min-height: 500px;
+}
+
+.viewer-panel .packing-viewer-empty {
+    min-height: 500px;
+    align-content: center;
+}
+
+.metrics-panel .run-status {
+    margin-bottom: 12px;
+}
+
+.metrics-panel .metric-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 9px;
+}
+
+.metrics-panel .metric-card {
+    min-height: 72px;
+    padding: 11px;
+    border-color: rgba(125, 246, 239, 0.14);
+    background: rgba(255, 255, 255, 0.065);
+}
+
+.metrics-panel .metric-value {
+    font-size: 1rem;
+}
+
+.secondary-panel {
+    margin-top: 14px;
+}
+
+.secondary-grid {
+    display: grid !important;
+    grid-template-columns: minmax(280px, 0.9fr) minmax(360px, 1.1fr);
+    gap: 14px !important;
+    align-items: start;
+}
+
+.secondary-grid > div {
+    min-width: 0 !important;
+}
+
+.control-panel .block,
+.metrics-panel .block,
+.viewer-panel .block,
+.result-panel .block {
+    background: rgba(255, 255, 255, 0.045) !important;
+    border-color: rgba(125, 246, 239, 0.12) !important;
+}
+
+.control-panel [data-testid="block-label"],
+.metrics-panel [data-testid="block-label"],
+.result-panel [data-testid="block-label"] {
+    color: #22d3c5 !important;
+}
+
+.control-panel input,
+.control-panel textarea,
+.control-panel select,
+.metrics-panel input,
+.metrics-panel textarea,
+.metrics-panel select {
+    background: rgba(255, 255, 255, 0.06) !important;
+    border-color: rgba(125, 246, 239, 0.16) !important;
+    color: #e7f1f4 !important;
+}
+
+.control-panel .wrap,
+.metrics-panel .wrap,
+.result-panel .wrap {
+    background: rgba(255, 255, 255, 0.04) !important;
+    border-color: rgba(125, 246, 239, 0.12) !important;
+}
+
+.secondary-panel table,
+.secondary-panel td,
+.secondary-panel th {
+    color: #e7f1f4 !important;
+    background: rgba(5, 9, 13, 0.74) !important;
+}
+
+.secondary-panel .dataframe,
+.secondary-panel .table-wrap {
+    border-color: rgba(125, 246, 239, 0.14) !important;
+}
+
 @media (max-width: 900px) {
     .hero-strip,
     .metric-grid,
@@ -980,6 +1148,477 @@ gradio-app {
     .result-pill {
         display: inline-block;
         margin-top: 12px;
+    }
+}
+
+@media (max-width: 1180px) {
+    .cockpit-workspace,
+    .secondary-grid {
+        display: flex !important;
+        flex-direction: column !important;
+    }
+}
+
+/* M5.4 stage-first horizontal layout */
+.command-panel,
+.stage-viewer-panel,
+.run-output-strip > div,
+.run-status-panel,
+.metrics-strip-panel {
+    border: 1px solid rgba(125, 246, 239, 0.18);
+    border-radius: 14px;
+    background: rgba(10, 16, 23, 0.72);
+    box-shadow: 0 28px 80px rgba(0, 0, 0, 0.28);
+    backdrop-filter: blur(18px);
+    padding: 14px;
+}
+
+.command-panel {
+    margin-bottom: 14px;
+}
+
+.command-panel h2,
+.run-status-panel h2,
+.stage-viewer-panel h2,
+.secondary-panel h2,
+.secondary-panel h3 {
+    color: #e7f1f4 !important;
+}
+
+.command-bar {
+    display: grid !important;
+    grid-template-columns: minmax(230px, 1fr) minmax(240px, 1fr) minmax(250px, 0.9fr) minmax(280px, 1fr);
+    gap: 12px !important;
+    align-items: stretch !important;
+}
+
+.command-bar > div,
+.command-cell {
+    min-width: 0 !important;
+    width: 100% !important;
+}
+
+.command-cell {
+    border: 1px solid rgba(125, 246, 239, 0.12);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.045);
+    padding: 12px;
+}
+
+.dataset-status-strip {
+    margin-top: 10px;
+    padding: 10px 12px;
+}
+
+.dataset-status-strip h3,
+.dataset-status-strip p {
+    display: inline;
+    margin-right: 10px;
+}
+
+.visually-hidden-panel {
+    display: none !important;
+}
+
+.selected-truck-compact {
+    grid-template-columns: 62px minmax(0, 1fr);
+    margin-top: 0;
+    min-height: 92px;
+    height: 100%;
+}
+
+.selected-truck-compact .selected-preview {
+    min-height: 62px;
+}
+
+.selected-truck-compact .selected-preview img {
+    width: 58px;
+    height: 58px;
+}
+
+.selected-truck-compact .variant-copy h3 {
+    margin: 0 0 6px;
+    font-family: var(--font-body) !important;
+    font-size: 0.9rem;
+}
+
+.selected-truck-compact .variant-copy p {
+    margin: 0;
+    font-size: 0.76rem !important;
+    line-height: 1.35 !important;
+    color: #b8c6cf !important;
+}
+
+.stage-viewer-panel {
+    margin-bottom: 14px;
+    padding: 16px;
+}
+
+.stage-viewer-panel .result-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 12px;
+}
+
+.stage-viewer-panel .result-title {
+    color: #e7f1f4;
+    font-size: 1.55rem;
+}
+
+.stage-viewer-panel .result-copy {
+    color: #9fb0bb;
+    font-size: 0.86rem;
+}
+
+.stage-viewer-panel .packing-viewer-section {
+    margin-top: 0;
+}
+
+.stage-viewer-panel .packing-viewer-section h3 {
+    display: none;
+}
+
+.stage-viewer-panel .packing-viewer-frame {
+    min-height: 720px;
+    height: min(74vh, 820px);
+    border-color: rgba(125, 246, 239, 0.24);
+}
+
+.stage-viewer-panel .packing-viewer-empty {
+    min-height: 560px;
+}
+
+.run-output-strip {
+    display: grid !important;
+    grid-template-columns: minmax(300px, 0.56fr) minmax(620px, 2fr);
+    gap: 14px !important;
+    align-items: start !important;
+    margin-bottom: 14px;
+}
+
+.run-output-strip > div {
+    min-width: 0 !important;
+    width: 100% !important;
+}
+
+.metrics-strip-panel .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    overflow: visible;
+    padding-bottom: 0;
+}
+
+.metrics-strip-panel .metric-card {
+    min-width: 0;
+    min-height: 82px;
+    border-color: rgba(125, 246, 239, 0.16);
+    background: rgba(255, 255, 255, 0.065);
+}
+
+.metrics-strip-panel .metric-label,
+.metrics-strip-panel .metric-value,
+.metrics-strip-panel .metric-note,
+.metric-card,
+.metric-card * {
+    color: #e7f1f4 !important;
+}
+
+.metrics-strip-panel .metric-note,
+.metric-note {
+    color: #9fb0bb !important;
+}
+
+.secondary-panel {
+    margin-top: 0;
+}
+
+.secondary-panel .dataset-summary-grid {
+    margin-bottom: 12px;
+}
+
+.gradio-container,
+.gradio-container label,
+.gradio-container button,
+.gradio-container input,
+.gradio-container textarea,
+.gradio-container select,
+.gradio-container table,
+.gradio-container th,
+.gradio-container td,
+.gradio-container .prose,
+.gradio-container .prose *,
+.gradio-container .wrap,
+.gradio-container .block,
+.gradio-container .form,
+.gradio-container .container {
+    color: #e7f1f4 !important;
+}
+
+.gradio-container input,
+.gradio-container textarea,
+.gradio-container select,
+.gradio-container .wrap,
+.gradio-container .block,
+.gradio-container .form {
+    background-color: rgba(255, 255, 255, 0.045) !important;
+    border-color: rgba(125, 246, 239, 0.14) !important;
+}
+
+.gradio-container input::placeholder,
+.gradio-container textarea::placeholder {
+    color: #8aa0b4 !important;
+}
+
+.dataset-warning {
+    color: #ffe39a !important;
+    background: rgba(247, 201, 72, 0.12) !important;
+}
+
+.command-bar select,
+.command-bar input,
+.command-bar textarea,
+.command-bar [role="combobox"],
+.command-bar .wrap,
+.command-bar .container {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+}
+
+.command-bar select,
+.command-bar input {
+    padding-right: 34px !important;
+}
+
+.command-bar .dropdown,
+.command-bar [data-testid="dropdown"],
+.command-bar .secondary-wrap {
+    min-width: 0 !important;
+    max-width: 100% !important;
+}
+
+.metric-card .metric-value,
+.metric-card .metric-label,
+.metric-card .metric-note {
+    opacity: 1 !important;
+}
+
+.metric-card .metric-value {
+    color: #f4f7f9 !important;
+}
+
+.metric-card .metric-label {
+    color: #9fb0bb !important;
+}
+
+.metric-card .metric-note {
+    color: #b8c6cf !important;
+}
+
+.run-status,
+.run-status *,
+.dataset-status-strip,
+.dataset-status-strip * {
+    color: #e7f1f4 !important;
+}
+
+/* M5.6 glossy glass controls */
+.command-panel,
+.stage-viewer-panel,
+.run-output-strip > div,
+.result-panel,
+.command-cell,
+.metric-card,
+.dataset-card,
+.validation-panel,
+.validation-item,
+.asset-preview-band,
+.truck-details,
+.run-status {
+    position: relative;
+    overflow: hidden;
+    background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.035) 38%, rgba(255, 255, 255, 0.015)),
+        linear-gradient(180deg, rgba(125, 246, 239, 0.055), rgba(5, 9, 13, 0.12)),
+        rgba(12, 19, 26, 0.68) !important;
+    border-color: rgba(178, 246, 242, 0.2) !important;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.18),
+        inset 0 -18px 42px rgba(0, 0, 0, 0.16),
+        0 22px 70px rgba(0, 0, 0, 0.28) !important;
+}
+
+.command-panel::before,
+.stage-viewer-panel::before,
+.run-output-strip > div::before,
+.result-panel::before,
+.command-cell::before,
+.metric-card::before,
+.dataset-card::before,
+.asset-preview-band::before,
+.truck-details::before,
+.run-status::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+        linear-gradient(118deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.035) 18%, transparent 34%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.075), transparent 42%);
+    opacity: 0.9;
+}
+
+.command-panel > *,
+.stage-viewer-panel > *,
+.run-output-strip > div > *,
+.result-panel > *,
+.command-cell > *,
+.metric-card > *,
+.dataset-card > *,
+.asset-preview-band > *,
+.truck-details > *,
+.run-status > * {
+    position: relative;
+    z-index: 1;
+}
+
+.gradio-container input[type="range"] {
+    height: 8px !important;
+    accent-color: #22d3c5 !important;
+    cursor: pointer;
+}
+
+.gradio-container input[type="range"]::-webkit-slider-runnable-track {
+    height: 8px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #22d3c5, #8ffff3);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+}
+
+.gradio-container input[type="range"]::-webkit-slider-thumb {
+    appearance: none;
+    width: 22px;
+    height: 22px;
+    margin-top: -7px;
+    border-radius: 50%;
+    border: 3px solid #e7fffb;
+    background: radial-gradient(circle at 32% 28%, #ffffff, #22d3c5 58%, #087a76);
+    box-shadow: 0 0 0 4px rgba(34, 211, 197, 0.18), 0 8px 18px rgba(0, 0, 0, 0.38);
+}
+
+.gradio-container input[type="range"]::-moz-range-track {
+    height: 8px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #22d3c5, #8ffff3);
+}
+
+.gradio-container input[type="range"]::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border: 3px solid #e7fffb;
+    background: #22d3c5;
+    box-shadow: 0 0 0 4px rgba(34, 211, 197, 0.18);
+}
+
+.command-cell input[type="number"],
+.command-cell .number input {
+    background: rgba(255, 255, 255, 0.105) !important;
+    border: 1px solid rgba(178, 246, 242, 0.16) !important;
+    color: #ffffff !important;
+    font-weight: 900 !important;
+}
+
+.command-cell label:has(input[type="radio"]) {
+    border-radius: 10px !important;
+    border: 1px solid rgba(178, 246, 242, 0.12) !important;
+    background: rgba(255, 255, 255, 0.045) !important;
+    color: #d5e4ea !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.command-cell label:has(input[type="radio"]:checked) {
+    border-color: rgba(34, 211, 197, 0.62) !important;
+    background:
+        linear-gradient(135deg, rgba(34, 211, 197, 0.34), rgba(34, 211, 197, 0.16)),
+        rgba(255, 255, 255, 0.06) !important;
+    color: #ffffff !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 8px 24px rgba(34, 211, 197, 0.12);
+}
+
+.command-cell input[type="radio"] {
+    accent-color: #22d3c5 !important;
+    filter: drop-shadow(0 0 6px rgba(34, 211, 197, 0.42));
+}
+
+.command-cell .form,
+.command-cell .wrap,
+.command-cell .container {
+    background: rgba(255, 255, 255, 0.025) !important;
+    box-shadow: none !important;
+}
+
+.selected-preview,
+.truck-thumb {
+    overflow: hidden;
+    aspect-ratio: 1 / 1;
+    border-radius: 14px;
+    border: 1px solid rgba(178, 246, 242, 0.16);
+}
+
+.selected-truck-compact .selected-preview {
+    width: 62px;
+    height: 62px;
+    min-height: 62px;
+}
+
+.selected-truck-compact .selected-preview img,
+.truck-thumb img {
+    width: 52px !important;
+    height: 52px !important;
+    max-width: 52px !important;
+    max-height: 52px !important;
+    object-fit: contain !important;
+    object-position: center !important;
+}
+
+.selected-truck-compact {
+    align-items: center;
+}
+
+.selected-truck-compact .variant-copy {
+    min-width: 0;
+}
+
+.selected-truck-compact .variant-copy h3,
+.selected-truck-compact .variant-copy p {
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 1180px) {
+    .command-bar,
+    .run-output-strip {
+        display: flex !important;
+        flex-direction: column !important;
+    }
+
+    .stage-viewer-panel .packing-viewer-frame {
+        min-height: 560px;
+        height: 68vh;
+    }
+
+    .metrics-strip-panel .metric-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 720px) {
+    .metrics-strip-panel .metric-grid {
+        grid-template-columns: 1fr;
     }
 }
 
@@ -1027,10 +1666,20 @@ gradio-app {
 
 BOX_PREVIEW_HEADERS = ["Box", "Dimensions", "Volume"]
 ROUTE_PREVIEW_HEADERS = ["Route / stop", "Customers", "Distance / location", "Boxes", "Status"]
+BUILD_LABEL = "M5.6 final UI polish build"
 
 
 def default_demo_label() -> str:
     return demo_dataset_options()[0]
+
+
+def build_badge_html() -> str:
+    return f"""
+    <div class="build-badge">
+        <span>{BUILD_LABEL} | fresh-server validation target: 127.0.0.1:7865+</span>
+        <span>No baseline models | Proposed GA only | Quick defaults 10 x 2</span>
+    </div>
+    """
 
 
 def current_dataset_bundle(
@@ -1624,15 +2273,13 @@ def selected_asset_html(truck_name: str, variant_name: str) -> str:
     dims = format_truck_dimensions(preset.length_mm, preset.width_mm, preset.height_mm)
 
     return f"""
-    <div class="asset-preview-band">
+    <div class="asset-preview-band selected-truck-compact">
         <div class="selected-preview">
             <img src="{preview_src}" alt="{escape(variant.name)} preview">
         </div>
         <div class="variant-copy">
             <h3>{escape(variant.name)}</h3>
-            <p>{escape(variant.description)}</p>
-            <p><strong>Truck class:</strong> {escape(preset.name)}</p>
-            <p><strong>Internal load space:</strong> {escape(dims)}</p>
+            <p>{escape(preset.name)} | {escape(dims)}</p>
         </div>
     </div>
     """
@@ -1857,106 +2504,105 @@ def build_app() -> gr.Blocks:
     with gr.Blocks(title="GA-Based Truck Loading") as demo:
         with gr.Column(elem_classes=["app-shell"]):
             gr.HTML(hero_html())
+            gr.HTML(build_badge_html())
 
-            with gr.Row(equal_height=False, elem_classes=["main-workspace"]):
-                with gr.Column(scale=1, min_width=300, elem_classes=["control-panel"]):
-                    gr.Markdown("## Control deck")
-                    dataset_source = gr.Radio(
-                        choices=["Demo dataset", "Upload dataset"],
-                        value="Demo dataset",
-                        label="Dataset source",
-                    )
-                    upload_file = gr.File(
-                        label="Dataset file",
-                        file_types=[".json"],
-                        visible=False,
-                    )
-                    demo_dataset = gr.Dropdown(
-                        choices=demo_dataset_options(),
-                        value=default_dataset,
-                        label="Demo dataset",
-                    )
-                    dataset_status = gr.Markdown(
-                        dataset_helper("Demo dataset", bundle=default_bundle),
-                        elem_classes=["truck-details"],
-                    )
-                    dataset_summary = gr.HTML(dataset_summary_html(default_bundle))
-                    box_preview = gr.Dataframe(
-                        headers=BOX_PREVIEW_HEADERS,
-                        value=box_preview_rows(default_bundle),
-                        label="Box preview",
-                        interactive=False,
-                        wrap=True,
-                    )
-
-                    gr.Markdown("## Truck selector")
-                    truck_preset = gr.Radio(
-                        choices=preset_names(),
-                        value=default_truck,
-                        label="Truck class",
-                        elem_classes=["truck-class-radio"],
-                    )
-                    truck_variant = gr.Radio(
-                        choices=variant_names(default_truck),
-                        value=default_variant,
-                        label="Body style",
-                        elem_classes=["body-style-radio"],
-                    )
-                    selected_truck_preview = gr.HTML(
-                        selected_asset_html(default_truck, default_variant),
-                    )
-                    truck_dimensions = gr.Markdown(
-                        format_dimensions(default_truck),
-                        elem_classes=["truck-details"],
-                    )
-
-                    gr.Textbox(
-                        value="Proposed packing-aware genetic algorithm",
-                        label="Model",
-                        interactive=False,
-                    )
-
-                    with gr.Row():
-                        population_slider = gr.Slider(
-                            10,
-                            60,
-                            value=10,
-                            step=10,
-                            label="Population (quick to slower)",
-                            interactive=True,
+            with gr.Column(elem_classes=["command-panel"]):
+                gr.Markdown("## Run setup")
+                with gr.Row(equal_height=False, elem_classes=["command-bar"]):
+                    with gr.Column(scale=1, min_width=220, elem_classes=["command-cell"]):
+                        dataset_source = gr.Radio(
+                            choices=["Demo dataset", "Upload dataset"],
+                            value="Demo dataset",
+                            label="Dataset source",
                         )
-                        generations_slider = gr.Slider(
-                            2,
-                            60,
-                            value=2,
-                            step=10,
-                            label="Generations (quick to slower)",
-                            interactive=True,
+                        demo_dataset = gr.Dropdown(
+                            choices=demo_dataset_options(),
+                            value=default_dataset,
+                            label="Demo dataset",
                         )
+                        upload_file = gr.File(
+                            label="Dataset file",
+                            file_types=[".json"],
+                            visible=False,
+                        )
+                    with gr.Column(scale=1, min_width=220, elem_classes=["command-cell"]):
+                        truck_preset = gr.Radio(
+                            choices=preset_names(),
+                            value=default_truck,
+                            label="Truck class",
+                            elem_classes=["truck-class-radio"],
+                        )
+                        truck_variant = gr.Radio(
+                            choices=variant_names(default_truck),
+                            value=default_variant,
+                            label="Body style",
+                            elem_classes=["body-style-radio"],
+                        )
+                    with gr.Column(scale=1, min_width=220, elem_classes=["command-cell", "truck-summary-cell"]):
+                        selected_truck_preview = gr.HTML(selected_asset_html(default_truck, default_variant))
+                        truck_dimensions = gr.Markdown(
+                            format_dimensions(default_truck),
+                            elem_classes=["truck-details", "visually-hidden-panel"],
+                        )
+                    with gr.Column(scale=1, min_width=240, elem_classes=["command-cell"]):
+                        with gr.Row():
+                            population_slider = gr.Slider(
+                                10,
+                                60,
+                                value=10,
+                                step=10,
+                                label="Population",
+                                interactive=True,
+                            )
+                            generations_slider = gr.Slider(
+                                2,
+                                60,
+                                value=2,
+                                step=10,
+                                label="Generations",
+                                interactive=True,
+                            )
+                        run_button = gr.Button("Run proposed GA", variant="primary")
+                dataset_status = gr.Markdown(
+                    dataset_helper("Demo dataset", bundle=default_bundle),
+                    elem_classes=["truck-details", "dataset-status-strip"],
+                )
 
-                    run_button = gr.Button("Run proposed GA", variant="primary")
+            with gr.Column(elem_classes=["stage-viewer-panel"]):
+                dashboard_header = gr.HTML(default_dashboard[4])
+                with gr.Column(elem_classes=["packing-viewer-section"]):
+                    gr.Markdown("### Animated 3D loading viewer")
+                    packing_viewer = gr.HTML(default_dashboard[11])
+
+            with gr.Row(equal_height=False, elem_classes=["run-output-strip"]):
+                with gr.Column(scale=1, min_width=260, elem_classes=["run-status-panel"]):
                     run_status = gr.Markdown(
                         default_dashboard[3],
                         elem_classes=["run-status"],
                     )
-
-                with gr.Column(scale=2, min_width=300, elem_classes=["stage-panel"]):
-                    dashboard_header = gr.HTML(default_dashboard[4])
-                    with gr.Column(elem_classes=["packing-viewer-section"]):
-                        gr.Markdown("### Animated 3D loading viewer")
-                        packing_viewer = gr.HTML(default_dashboard[11])
+                with gr.Column(scale=3, min_width=420, elem_classes=["metrics-strip-panel"]):
                     result_metrics = gr.HTML(default_dashboard[6])
 
-            with gr.Column(elem_classes=["result-panel"]):
+            with gr.Column(elem_classes=["result-panel", "secondary-panel"]):
+                dataset_summary = gr.HTML(dataset_summary_html(default_bundle))
                 validation_status = gr.HTML(default_dashboard[5])
-                with gr.Row():
+                with gr.Row(elem_classes=["secondary-grid"]):
+                    with gr.Column(scale=1):
+                        gr.Markdown("### Box preview")
+                        box_preview = gr.Dataframe(
+                            headers=BOX_PREVIEW_HEADERS,
+                            value=box_preview_rows(default_bundle),
+                            label="Box preview",
+                            interactive=False,
+                            wrap=True,
+                        )
                     with gr.Column(scale=1):
                         gr.Markdown("### Convergence preview")
                         convergence_preview = gr.HTML(default_dashboard[9])
+                with gr.Row(elem_classes=["secondary-grid"]):
                     with gr.Column(scale=1):
                         gr.Markdown("### Customer geometry")
                         route_plot = gr.Plot(value=default_dashboard[8], show_label=False)
-                with gr.Row():
                     with gr.Column(scale=1):
                         gr.Markdown("### Route preview")
                         route_summary = gr.Dataframe(

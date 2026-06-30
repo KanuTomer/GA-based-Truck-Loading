@@ -15,10 +15,10 @@ from truck_loading.data import (
 
 
 EXPECTED_COUNTS = {
-    "50 customers - group 1111 (XML50_1111_01)": (50, 126),
-    "50 customers - group 1142 (XML50_1142_01)": (50, 120),
-    "100 customers - group 1111 (XML100_1111_01)": (100, 252),
-    "100 customers - group 1142 (XML100_1142_01)": (100, 240),
+    "50 customers - group 1": (50, 126),
+    "50 customers - group 2": (50, 120),
+    "100 customers - group 1": (100, 252),
+    "100 customers - group 2": (100, 240),
 }
 
 

@@ -19,6 +19,12 @@ DEMO_DATASET_FILES: tuple[str, ...] = (
     "XML100_1111_01_merged_with_boxes_norm.json",
     "XML100_1142_01_merged_with_boxes_norm.json",
 )
+DEMO_DATASET_LABELS: tuple[str, ...] = (
+    "50 customers - group 1",
+    "50 customers - group 2",
+    "100 customers - group 1",
+    "100 customers - group 2",
+)
 THIN_BOX_THRESHOLD_MM = 75.0
 
 
@@ -72,15 +78,12 @@ class DatasetBundle:
 
 
 def demo_dataset_label(file_name: str) -> str:
-    stem = file_name.replace("_merged_with_boxes_norm.json", "")
-    parts = stem.split("_")
-    size = parts[0].replace("XML", "")
-    group = parts[1] if len(parts) > 1 else "unknown"
-    return f"{size} customers - group {group} ({stem})"
+    labels = dict(zip(DEMO_DATASET_FILES, DEMO_DATASET_LABELS, strict=True))
+    return labels.get(file_name, file_name.replace("_merged_with_boxes_norm.json", ""))
 
 
 def demo_dataset_options() -> list[str]:
-    return [demo_dataset_label(file_name) for file_name in DEMO_DATASET_FILES]
+    return list(DEMO_DATASET_LABELS)
 
 
 def demo_dataset_path(label: str | None) -> Path:
@@ -175,7 +178,7 @@ def summarize_dataset(data: dict[str, Any], label: str) -> DatasetSummary:
 
     return DatasetSummary(
         label=label,
-        instance_name=str(data.get("instance_name") or data.get("name") or label),
+        instance_name=label,
         real_customer_count=len(real_customers),
         customer_count=len(customers),
         box_count=len(boxes),
