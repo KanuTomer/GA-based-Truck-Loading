@@ -34,7 +34,6 @@ from truck_loading.presets import (
     default_variant_name,
     format_dimensions,
     get_preset,
-    model_path_for,
     preset_names,
     preview_path_for,
     variant_names,
@@ -297,6 +296,19 @@ main,
     color: var(--text-main) !important;
 }
 
+.stage-panel .result-title {
+    color: var(--text-main);
+}
+
+.stage-panel .result-copy {
+    color: #c7d0d8;
+}
+
+.stage-panel .result-pill {
+    color: #d9fffb;
+    background: rgba(34, 211, 197, 0.08);
+}
+
 .truck-card-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -341,8 +353,8 @@ main,
 }
 
 .truck-thumb img {
-    width: 64px;
-    height: 64px;
+    width: 72px;
+    height: 72px;
     object-fit: contain;
     image-rendering: auto;
     filter: drop-shadow(0 12px 14px rgba(17, 20, 23, 0.18));
@@ -464,9 +476,9 @@ main,
     align-items: center;
     gap: 14px;
     margin-top: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(17, 20, 23, 0.1);
     border-radius: 12px;
-    background: rgba(255, 255, 255, 0.06);
+    background: #f9fbfb;
     padding: 12px;
 }
 
@@ -477,12 +489,12 @@ main,
     border-radius: 12px;
     background:
         radial-gradient(circle at 50% 20%, rgba(34, 211, 197, 0.22), transparent 45%),
-        rgba(255, 255, 255, 0.08);
+        #eef4f5;
 }
 
 .selected-preview img {
-    width: 64px;
-    height: 64px;
+    width: 72px;
+    height: 72px;
     object-fit: contain;
     filter: drop-shadow(0 18px 22px rgba(0, 0, 0, 0.32));
 }
@@ -495,7 +507,7 @@ main,
 .variant-copy p,
 .variant-copy h3,
 .variant-copy strong {
-    color: #e6edf2 !important;
+    color: #1c252c !important;
 }
 
 .variant-copy .prose {
@@ -696,12 +708,12 @@ main,
 }
 
 .packing-viewer-section {
-    margin-top: 16px;
+    margin-top: 12px;
 }
 
 .packing-viewer-frame {
     width: 100%;
-    min-height: 620px;
+    min-height: 640px;
     border: 1px solid rgba(17, 20, 23, 0.12);
     border-radius: 14px;
     background: #0b0f12;
@@ -1038,11 +1050,17 @@ def result_metrics_html(
 
 def run_metrics_html(run_result: dict, truck_name: str, variant_name: str) -> str:
     best_info = run_result["best_info"]
+    first_route = (best_info.get("routes") or [{}])[0]
+    truck_volume_liters = float(first_route.get("truck_volume_liters") or 0.0)
+    total_route_liters = sum(float(route.get("route_box_volume_liters") or 0.0) for route in best_info.get("routes", []))
+    strategies = sorted({str(route.get("packing_strategy", "unknown")) for route in best_info.get("routes", [])})
     cards = [
         ("Best score", f"{run_result['best_score']:.1f}", "Lower is better"),
         ("Routes", f"{best_info['route_count']}", f"{best_info['feasible_routes']} feasible"),
         ("Packed boxes", f"{best_info['boxes_packed']}/{best_info['boxes_total']}", f"Unpacked: {best_info['unpacked_boxes']}"),
         ("Truck fill", f"{best_info['avg_fill_rate'] * 100:.1f}%", f"Min route fill: {best_info['min_fill_rate'] * 100:.1f}%"),
+        ("Load volume", f"{total_route_liters:.1f} L", f"Truck capacity: {truck_volume_liters:.1f} L per route"),
+        ("Packing order", ", ".join(strategies[:2]), "Best deterministic strategy per route"),
         ("Distance", f"{best_info['total_distance']:.1f}", "Coordinate-space distance"),
         ("Runtime", f"{run_result['runtime_seconds']:.1f}s", f"{truck_name} | {variant_name}"),
     ]
@@ -1085,7 +1103,8 @@ def route_result_rows(run_result: dict) -> list[list[str]]:
         customers = " -> ".join(route["customer_labels"][:4])
         if len(route["customer_labels"]) > 4:
             customers += " -> ..."
-        status = "Packed" if route["feasible"] else f"{len(route['unpacked_box_ids'])} unpacked"
+        strategy = route.get("packing_strategy", "unknown")
+        status = f"Packed | {strategy}" if route["feasible"] else f"{len(route['unpacked_box_ids'])} unpacked | {strategy}"
         rows.append(
             [
                 f"Route {route['route_index']}",
@@ -1283,6 +1302,7 @@ def _data_download_uri(content: str, mime_type: str) -> str:
 
 def viewer_payload(run_result: dict, truck_name: str, variant_name: str) -> dict:
     preset = get_preset(truck_name)
+    container = selected_truck_container(truck_name)
     routes = [
         route
         for route in run_result["best_info"]["routes"]
@@ -1292,7 +1312,12 @@ def viewer_payload(run_result: dict, truck_name: str, variant_name: str) -> dict
         routes = run_result["best_info"]["routes"][:1]
     return {
         "truck": {"name": preset.name, "body_style": variant_name},
-        "container": selected_truck_container(truck_name),
+        "container": container,
+        "axis_labels": {
+            "length": f"Length {container['L'] / 1000:.1f} m / {container['L'] / 304.8:.1f} ft",
+            "width": f"Width {container['W'] / 1000:.1f} m / {container['W'] / 304.8:.1f} ft",
+            "height": f"Height {container['H'] / 1000:.1f} m / {container['H'] / 304.8:.1f} ft",
+        },
         "routes": routes,
     }
 
@@ -1436,8 +1461,6 @@ def update_truck_class(source: str, demo_label: str, uploaded_file, truck_name: 
     return (
         gr.update(choices=variant_names(truck_name), value=selected_variant),
         format_dimensions(truck_name),
-        truck_cards_html(truck_name),
-        model_path_for(truck_name, selected_variant),
         selected_asset_html(truck_name, selected_variant),
         *dashboard[3:],
     )
@@ -1446,7 +1469,6 @@ def update_truck_class(source: str, demo_label: str, uploaded_file, truck_name: 
 def update_body_style(source: str, demo_label: str, uploaded_file, truck_name: str, variant_name: str):
     dashboard = dashboard_outputs(source, demo_label, uploaded_file, truck_name, variant_name)
     return (
-        model_path_for(truck_name, variant_name),
         selected_asset_html(truck_name, variant_name),
         *dashboard[3:],
     )
@@ -1598,42 +1620,6 @@ def truck_cards_html(selected_name: str) -> str:
     return f'<div class="truck-card-grid">{"".join(cards)}</div>'
 
 
-def model_stage_header_html() -> str:
-    return """
-    <div class="model-stage-header">
-        <div>
-            <div class="model-stage-kicker">Asset-backed truck selection</div>
-            <div class="model-stage-title">3D truck preview</div>
-            <div class="model-stage-copy">
-                The selected Kenney model previews the truck body for the future packing scene.
-                Actual box loading animation starts after validation and placement data are connected.
-            </div>
-        </div>
-        <div class="model-pill">Kenney Car Kit - CC0</div>
-    </div>
-    """
-
-
-def metrics_html() -> str:
-    cards = [
-        ("Best score", "Pending", "Calculated after proposed GA run"),
-        ("Packed boxes", "Pending", "Loaded from route placements"),
-        ("Fill rate", "Pending", "Shown per selected truck route"),
-        ("Runtime", "Pending", "Capped for hosted demo"),
-    ]
-    items = "\n".join(
-        f"""
-        <div class="metric-card">
-            <div class="metric-label">{label}</div>
-            <div class="metric-value">{value}</div>
-            <div class="metric-note">{note}</div>
-        </div>
-        """
-        for label, value, note in cards
-    )
-    return f'<div class="metric-grid">{items}</div>'
-
-
 def build_app() -> gr.Blocks:
     default_truck = preset_names()[0]
     default_variant = default_variant_name(default_truck)
@@ -1683,7 +1669,6 @@ def build_app() -> gr.Blocks:
                     )
 
                     gr.Markdown("## Truck selector")
-                    truck_cards = gr.HTML(truck_cards_html(default_truck))
                     truck_preset = gr.Radio(
                         choices=preset_names(),
                         value=default_truck,
@@ -1695,6 +1680,9 @@ def build_app() -> gr.Blocks:
                         value=default_variant,
                         label="Body style",
                         elem_classes=["body-style-radio"],
+                    )
+                    selected_truck_preview = gr.HTML(
+                        selected_asset_html(default_truck, default_variant),
                     )
                     truck_dimensions = gr.Markdown(
                         format_dimensions(default_truck),
@@ -1732,26 +1720,14 @@ def build_app() -> gr.Blocks:
                     )
 
                 with gr.Column(scale=2, min_width=300, elem_classes=["stage-panel"]):
-                    with gr.Column(elem_classes=["model-stage"]):
-                        gr.HTML(model_stage_header_html())
-                        with gr.Column(elem_classes=["model-frame"]):
-                            truck_model = gr.Model3D(
-                                value=model_path_for(default_truck, default_variant),
-                                label="Selected truck model",
-                                show_label=False,
-                                clear_color=(0.06, 0.08, 0.1, 1.0),
-                                display_mode="solid",
-                                camera_position=(2.7, 1.8, 3.2),
-                                height=470,
-                            )
-                        variant_description = gr.HTML(
-                            selected_asset_html(default_truck, default_variant),
-                        )
+                    dashboard_header = gr.HTML(default_dashboard[4])
+                    with gr.Column(elem_classes=["packing-viewer-section"]):
+                        gr.Markdown("### Animated 3D loading viewer")
+                        packing_viewer = gr.HTML(default_dashboard[11])
+                    result_metrics = gr.HTML(default_dashboard[6])
 
             with gr.Column(elem_classes=["result-panel"]):
-                dashboard_header = gr.HTML(default_dashboard[4])
                 validation_status = gr.HTML(default_dashboard[5])
-                result_metrics = gr.HTML(default_dashboard[6])
                 with gr.Row():
                     with gr.Column(scale=1):
                         gr.Markdown("### Convergence preview")
@@ -1771,10 +1747,6 @@ def build_app() -> gr.Blocks:
                     with gr.Column(scale=1):
                         gr.Markdown("### Downloads")
                         downloads_placeholder = gr.HTML(default_dashboard[10])
-
-                with gr.Column(elem_classes=["packing-viewer-section"]):
-                    gr.Markdown("### Animated 3D loading viewer")
-                    packing_viewer = gr.HTML(default_dashboard[11])
 
         dataset_source.change(
             fn=update_dataset_source,
@@ -1841,9 +1813,7 @@ def build_app() -> gr.Blocks:
             outputs=[
                 truck_variant,
                 truck_dimensions,
-                truck_cards,
-                truck_model,
-                variant_description,
+                selected_truck_preview,
                 run_status,
                 dashboard_header,
                 validation_status,
@@ -1860,8 +1830,7 @@ def build_app() -> gr.Blocks:
             fn=update_body_style,
             inputs=[dataset_source, demo_dataset, upload_file, truck_preset, truck_variant],
             outputs=[
-                truck_model,
-                variant_description,
+                selected_truck_preview,
                 run_status,
                 dashboard_header,
                 validation_status,

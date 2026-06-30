@@ -45,10 +45,71 @@ class PackingAndGATests(unittest.TestCase):
         first_route = result["best_info"]["routes"][0]
         self.assertIn("placements", first_route)
         self.assertGreater(first_route["boxes_packed"], 0)
+        self.assertIn("packing_strategy", first_route)
+        self.assertIn("truck_volume_liters", first_route)
+        self.assertIn("route_box_volume_liters", first_route)
         first_placement = first_route["placements"][0]
         self.assertIn("customer_id", first_placement)
         self.assertIn("customer_label", first_placement)
         self.assertIn("color", first_placement)
+
+    def test_route_splitting_uses_truck_packability_not_fixed_box_count(self) -> None:
+        bundle = load_demo_dataset("50 customers - group 1111 (XML50_1111_01)")
+        preset = get_preset("City Mini Truck")
+        result = run_proposed_ga(
+            bundle.data,
+            (preset.length_mm, preset.width_mm, preset.height_mm),
+            ProposedGAConfig(population_size=10, generations=2, seed=7),
+        )
+
+        route_box_counts = [route["boxes_total"] for route in result["best_info"]["routes"]]
+        self.assertNotIn(48, route_box_counts)
+        self.assertEqual(sum(route_box_counts), bundle.summary.box_count)
+
+    def test_medium_truck_capacity_can_reduce_route_count(self) -> None:
+        data = _capacity_sensitive_dataset()
+        city = get_preset("City Mini Truck")
+        medium = get_preset("Medium Cargo Truck")
+
+        city_result = run_proposed_ga(
+            data,
+            (city.length_mm, city.width_mm, city.height_mm),
+            ProposedGAConfig(population_size=10, generations=2, seed=1),
+        )
+        medium_result = run_proposed_ga(
+            data,
+            (medium.length_mm, medium.width_mm, medium.height_mm),
+            ProposedGAConfig(population_size=10, generations=2, seed=1),
+        )
+
+        self.assertGreater(city_result["best_info"]["route_count"], medium_result["best_info"]["route_count"])
+        self.assertEqual(medium_result["best_info"]["route_count"], 1)
+        self.assertGreaterEqual(
+            medium_result["best_info"]["boxes_packed"],
+            city_result["best_info"]["boxes_packed"],
+        )
+
+    def test_viewer_payload_includes_axis_labels(self) -> None:
+        import app
+
+        preset = get_preset("Medium Cargo Truck")
+        result = {
+            "best_info": {
+                "routes": [
+                    {
+                        "route_index": 1,
+                        "placements": [],
+                    }
+                ]
+            }
+        }
+
+        payload = app.viewer_payload(result, preset.name, "Covered cargo body")
+
+        self.assertIn("axis_labels", payload)
+        self.assertIn("Length", payload["axis_labels"]["length"])
+        self.assertIn("Width", payload["axis_labels"]["width"])
+        self.assertIn("Height", payload["axis_labels"]["height"])
 
     def test_unplaceable_box_is_reported_as_unpacked(self) -> None:
         data = {
@@ -70,6 +131,34 @@ class PackingAndGATests(unittest.TestCase):
         self.assertFalse(route["feasible"])
         self.assertEqual(route["boxes_packed"], 0)
         self.assertEqual(route["unpacked_box_ids"], ["too_big"])
+
+def _capacity_sensitive_dataset() -> dict:
+    customers = [{"id": 0, "customer_id": 0, "x": 0, "y": 0, "is_depot": True, "assigned_boxes": []}]
+    boxes = []
+    for index in range(1, 7):
+        box_id = f"box_{index}"
+        customers.append(
+            {
+                "id": index,
+                "customer_id": index,
+                "x": index * 10,
+                "y": index * 7,
+                "assigned_boxes": [box_id],
+            }
+        )
+        boxes.append(
+            {
+                "box_id": box_id,
+                "length": 1000,
+                "width": 1000,
+                "height": 700,
+            }
+        )
+    return {
+        "container": {"L": 4267, "W": 1829, "H": 1981},
+        "customers": customers,
+        "boxes": boxes,
+    }
 
 
 if __name__ == "__main__":

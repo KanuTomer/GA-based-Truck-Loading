@@ -123,6 +123,15 @@ select {{
 button:hover, select:hover {{
   border-color: rgba(34, 211, 197, .66);
 }}
+.speed-group {{
+  display: flex;
+  gap: 6px;
+}}
+.speed-button.active {{
+  border-color: rgba(34, 211, 197, .82);
+  background: rgba(34, 211, 197, .2);
+  color: #ffffff;
+}}
 .tooltip {{
   position: absolute;
   z-index: 6;
@@ -168,12 +177,12 @@ button:hover, select:hover {{
       <button id="play">Play</button>
       <button id="pause">Pause</button>
       <button id="replay">Replay</button>
-      <select id="speed" aria-label="Animation speed">
-        <option value="0.75">0.75x</option>
-        <option value="1" selected>1x</option>
-        <option value="1.5">1.5x</option>
-        <option value="2.25">2.25x</option>
-      </select>
+      <div class="speed-group" aria-label="Animation speed">
+        <button class="speed-button" data-speed="0.75">0.75x</button>
+        <button class="speed-button active" data-speed="1">1x</button>
+        <button class="speed-button" data-speed="1.5">1.5x</button>
+        <button class="speed-button" data-speed="2.25">2.25x</button>
+      </div>
     </div>
   </div>
   <div class="tooltip" id="tooltip">Click a box to inspect its customer and dimensions.</div>
@@ -221,6 +230,7 @@ let startTime = performance.now();
 let speed = 1;
 
 const dims = payload.container;
+const axisLabels = payload.axis_labels || {{}};
 const scale = 1 / 1000;
 const L = dims.L * scale;
 const W = dims.W * scale;
@@ -245,11 +255,55 @@ function buildContainer() {{
   floor.rotation.x = Math.PI / 2;
   floor.position.set(L / 2, -0.004, W / 2);
   root.add(floor);
+
+  root.add(makeLabel(axisLabels.length || `Length ${{L.toFixed(1)}} m`, L / 2, -0.08, -0.18));
+  root.add(makeLabel(axisLabels.width || `Width ${{W.toFixed(1)}} m`, L + 0.18, -0.08, W / 2));
+  root.add(makeLabel(axisLabels.height || `Height ${{H.toFixed(1)}} m`, -0.22, H / 2, W + 0.08));
 }}
 
 function setCamera() {{
-  camera.position.set(L * 1.12, Math.max(H * 1.95, 2.6), W * 2.25 + 1.2);
-  camera.lookAt(L / 2, H * 0.45, W / 2);
+  const longest = Math.max(L, W, H);
+  camera.position.set(L * 0.92, Math.max(H * 1.65, longest * 0.9, 2.4), W * 1.85 + longest * 0.55);
+  camera.lookAt(L / 2, H * 0.42, W / 2);
+}}
+
+function makeLabel(text, x, y, z) {{
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 128;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = 'rgba(11, 15, 18, 0.76)';
+  roundRect(ctx, 10, 26, 492, 70, 22);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(34, 211, 197, 0.72)';
+  ctx.lineWidth = 3;
+  roundRect(ctx, 10, 26, 492, 70, 22);
+  ctx.stroke();
+  ctx.fillStyle = '#e7fbf8';
+  ctx.font = '700 30px Space Grotesk, Segoe UI, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, 256, 62);
+  const texture = new THREE.CanvasTexture(canvas);
+  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({{ map: texture, transparent: true }}));
+  sprite.position.set(x, y, z);
+  sprite.scale.set(1.55, 0.38, 1);
+  return sprite;
+}}
+
+function roundRect(ctx, x, y, width, height, radius) {{
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.lineTo(x + width - radius, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+  ctx.lineTo(x + width, y + height - radius);
+  ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+  ctx.lineTo(x + radius, y + height);
+  ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+  ctx.lineTo(x, y + radius);
+  ctx.quadraticCurveTo(x, y, x + radius, y);
+  ctx.closePath();
 }}
 
 function boxPosition(placement) {{
@@ -331,7 +385,13 @@ routeSelect.addEventListener('change', event => buildRoute(Number(event.target.v
 document.getElementById('play').addEventListener('click', () => {{ playing = true; }});
 document.getElementById('pause').addEventListener('click', () => {{ playing = false; }});
 document.getElementById('replay').addEventListener('click', () => buildRoute(activeRoute));
-document.getElementById('speed').addEventListener('change', event => {{ speed = Number(event.target.value); }});
+document.querySelectorAll('.speed-button').forEach(button => {{
+  button.addEventListener('click', () => {{
+    speed = Number(button.dataset.speed);
+    document.querySelectorAll('.speed-button').forEach(item => item.classList.remove('active'));
+    button.classList.add('active');
+  }});
+}});
 renderer.domElement.addEventListener('click', inspect);
 window.addEventListener('resize', () => {{
   camera.aspect = container.clientWidth / container.clientHeight;

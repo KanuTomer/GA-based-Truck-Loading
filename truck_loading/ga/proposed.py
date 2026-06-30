@@ -12,6 +12,15 @@ from typing import Any
 from truck_loading.packing import place_boxes_in_container, validate_placements
 
 
+MM3_PER_LITER = 1_000_000.0
+PACKING_STRATEGIES = (
+    "volume_desc",
+    "footprint_desc",
+    "height_desc",
+    "original_order",
+)
+
+
 PALETTE = (
     "#22d3c5",
     "#f7c948",
@@ -31,7 +40,7 @@ class ProposedGAConfig:
     population_size: int = 40
     generations: int = 50
     seed: int = 42
-    max_boxes_per_route: int = 48
+    max_boxes_per_route: int = 500
     crossover_probability: float = 0.9
     mutation_probability: float = 0.22
 
@@ -39,7 +48,7 @@ class ProposedGAConfig:
     def capped(cls, population_size: int | float, generations: int | float) -> "ProposedGAConfig":
         return cls(
             population_size=max(10, min(60, int(population_size))),
-            generations=max(5, min(60, int(generations))),
+            generations=max(2, min(60, int(generations))),
         )
 
 
@@ -57,10 +66,6 @@ def run_proposed_ga(
     customer_ids = [customer["customer_id"] for customer in customers]
     customer_map = {customer["customer_id"]: customer for customer in customers}
     box_map = {str(box["box_id"]): box for box in data.get("boxes", [])}
-    customer_box_count = {
-        customer["customer_id"]: len(customer.get("assigned_boxes", []))
-        for customer in customers
-    }
     container = {
         "L": float(truck_dimensions_mm[0]),
         "W": float(truck_dimensions_mm[1]),
@@ -79,7 +84,7 @@ def run_proposed_ga(
     for _generation in range(config.generations):
         scored = [
             (
-                _score_order(order, depot, customer_map, box_map, customer_box_count, container, config),
+                _score_order(order, depot, customer_map, box_map, container, config),
                 order,
             )
             for order in population
@@ -107,9 +112,9 @@ def run_proposed_ga(
 
     if best_order is None or best_info is None:
         best_order = customer_ids
-        best_score, best_info = _score_order(best_order, depot, customer_map, box_map, customer_box_count, container, config)
+        best_score, best_info = _score_order(best_order, depot, customer_map, box_map, container, config)
 
-    best_score, best_info = _score_order(best_order, depot, customer_map, box_map, customer_box_count, container, config)
+    best_score, best_info = _score_order(best_order, depot, customer_map, box_map, container, config)
     runtime = time.perf_counter() - started
     return {
         "model": "proposed_ga",
@@ -160,11 +165,10 @@ def _score_order(
     depot: dict[str, Any],
     customer_map: dict[Any, dict[str, Any]],
     box_map: dict[str, dict[str, Any]],
-    customer_box_count: dict[Any, int],
     container: dict[str, float],
     config: ProposedGAConfig,
 ) -> tuple[float, dict[str, Any]]:
-    routes = _decode_by_box_count(order, customer_box_count, config.max_boxes_per_route)
+    routes = _decode_by_packability(order, customer_map, box_map, container, config.max_boxes_per_route)
     route_details = []
     total_distance = 0.0
     total_boxes = 0
@@ -225,6 +229,92 @@ def _decode_by_box_count(order: list[Any], customer_box_count: dict[Any, int], m
     return routes
 
 
+def _decode_by_packability(
+    order: list[Any],
+    customer_map: dict[Any, dict[str, Any]],
+    box_map: dict[str, dict[str, Any]],
+    container: dict[str, float],
+    max_boxes_per_route: int,
+) -> list[list[Any]]:
+    routes: list[list[Any]] = []
+    current: list[Any] = []
+    current_boxes: list[dict[str, Any]] = []
+
+    for customer_id in order:
+        customer_boxes = _boxes_for_customers([customer_id], customer_map, box_map)
+        candidate_boxes = current_boxes + customer_boxes
+        exceeds_guard = len(candidate_boxes) > max_boxes_per_route
+        candidate_result = _best_packing_result(container, candidate_boxes)
+        candidate_fits = candidate_result["placed_count"] == len(candidate_boxes)
+
+        if current and (exceeds_guard or not candidate_fits):
+            routes.append(current)
+            current = [customer_id]
+            current_boxes = customer_boxes
+            continue
+
+        current.append(customer_id)
+        current_boxes = candidate_boxes
+
+    if current:
+        routes.append(current)
+    return routes
+
+
+def _boxes_for_customers(
+    route: list[Any],
+    customer_map: dict[Any, dict[str, Any]],
+    box_map: dict[str, dict[str, Any]],
+) -> list[dict[str, Any]]:
+    boxes = []
+    for customer_id in route:
+        customer = customer_map[customer_id]
+        for box_id in customer.get("assigned_boxes", []):
+            box = box_map.get(str(box_id))
+            if box is not None:
+                boxes.append(box)
+    return boxes
+
+
+def _ordered_boxes(strategy: str, boxes: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    if strategy == "volume_desc":
+        return sorted(boxes, key=_box_volume, reverse=True)
+    if strategy == "footprint_desc":
+        return sorted(boxes, key=lambda box: float(box["length"]) * float(box["width"]), reverse=True)
+    if strategy == "height_desc":
+        return sorted(boxes, key=lambda box: float(box["height"]), reverse=True)
+    return list(boxes)
+
+
+def _best_packing_result(container: dict[str, float], boxes: list[dict[str, Any]]) -> dict[str, Any]:
+    if not boxes:
+        return {
+            "placements": [],
+            "packed_volume": 0.0,
+            "placed_count": 0,
+            "strategy": "original_order",
+        }
+
+    best: dict[str, Any] | None = None
+    for strategy in PACKING_STRATEGIES:
+        ordered = _ordered_boxes(strategy, boxes)
+        placements, packed_volume, placed_count = place_boxes_in_container(container, ordered)
+        candidate = {
+            "placements": placements,
+            "packed_volume": packed_volume,
+            "placed_count": placed_count,
+            "strategy": strategy,
+        }
+        if best is None or (placed_count, packed_volume) > (best["placed_count"], best["packed_volume"]):
+            best = candidate
+    return best or {
+        "placements": [],
+        "packed_volume": 0.0,
+        "placed_count": 0,
+        "strategy": "original_order",
+    }
+
+
 def _evaluate_route(
     route_index: int,
     route: list[Any],
@@ -233,18 +323,17 @@ def _evaluate_route(
     box_map: dict[str, dict[str, Any]],
     container: dict[str, float],
 ) -> dict[str, Any]:
-    boxes = []
     box_to_customer: dict[str, dict[str, Any]] = {}
     for customer_id in route:
         customer = customer_map[customer_id]
         for box_id in customer.get("assigned_boxes", []):
-            box = box_map.get(str(box_id))
-            if box is None:
-                continue
-            boxes.append(box)
             box_to_customer[str(box_id)] = customer
 
-    placements, packed_volume, packed_count = place_boxes_in_container(container, boxes)
+    boxes = _boxes_for_customers(route, customer_map, box_map)
+    packing_result = _best_packing_result(container, boxes)
+    placements = packing_result["placements"]
+    packed_volume = packing_result["packed_volume"]
+    packed_count = packing_result["placed_count"]
     validation_errors = validate_placements(placements, container)
     enriched = [
         _enrich_placement(route_index, placement, box_to_customer.get(str(placement["box_id"])))
@@ -254,6 +343,7 @@ def _evaluate_route(
     all_ids = [str(box["box_id"]) for box in boxes]
     unpacked = [box_id for box_id in all_ids if box_id not in packed_ids]
     container_volume = container["L"] * container["W"] * container["H"]
+    route_box_volume = sum(_box_volume(box) for box in boxes)
     distance = _route_distance(depot, customer_map, route)
     return {
         "route_index": route_index,
@@ -266,9 +356,16 @@ def _evaluate_route(
         "boxes_packed": packed_count,
         "unpacked_box_ids": unpacked,
         "fill_rate": packed_volume / container_volume if container_volume else 0.0,
+        "packing_strategy": packing_result["strategy"],
+        "truck_volume_liters": container_volume / MM3_PER_LITER,
+        "route_box_volume_liters": route_box_volume / MM3_PER_LITER,
         "placements": enriched,
         "placement_errors": validation_errors,
     }
+
+
+def _box_volume(box: dict[str, Any]) -> float:
+    return float(box["length"]) * float(box["width"]) * float(box["height"])
 
 
 def _enrich_placement(
