@@ -32,7 +32,6 @@ license is included under `assets/kenney-car-kit/License.txt`.
 
 ## Development Status
 
-Milestone 3 adds bundled 50/100 customer demo datasets, JSON dataset summaries,
-adaptive box dimension display, and accessible truck/container units. Solver
-code, validation execution, and animated box loading will be added in later
-milestones.
+Milestone 4 adds a visual results dashboard shell, dataset readiness validation,
+route geometry preview, typography polish, and download placeholders. Solver
+execution and animated truck loading remain later milestones.

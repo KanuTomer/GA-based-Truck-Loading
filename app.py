@@ -8,15 +8,22 @@ from html import escape
 from pathlib import Path
 
 import gradio as gr
+import matplotlib
+
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
 
 from truck_loading.data import (
     DatasetBundle,
     DatasetError,
     box_preview_rows,
     demo_dataset_options,
+    format_liters,
     format_truck_dimensions,
+    has_blocking_results,
     load_demo_dataset,
     load_uploaded_dataset,
+    validate_data_quality,
 )
 from truck_loading.presets import (
     ASSET_ROOT,
@@ -31,6 +38,8 @@ from truck_loading.presets import (
 
 
 CUSTOM_CSS = """
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&display=swap');
+
 :root {
     --bg-ink: #111417;
     --panel: #171b20;
@@ -42,6 +51,8 @@ CUSTOM_CSS = """
     --amber: #f7c948;
     --coral: #ff6b5f;
     --steel: #8aa0b4;
+    --font-display: "Playfair Display", "Soria", Georgia, serif;
+    --font-body: Inter, "Segoe UI", Arial, sans-serif;
 }
 
 body,
@@ -49,6 +60,7 @@ gradio-app {
     width: 100% !important;
     max-width: 100% !important;
     overflow-x: hidden !important;
+    font-family: var(--font-body) !important;
 }
 
 .gradio-container {
@@ -113,6 +125,7 @@ main,
 
 .hero-title {
     margin: 10px 0 8px;
+    font-family: var(--font-display);
     font-size: clamp(2.4rem, 5vw, 4.8rem);
     line-height: 0.95;
     letter-spacing: 0;
@@ -199,6 +212,7 @@ main,
 .control-panel .prose h3,
 .result-panel .prose h2,
 .result-panel .prose h3 {
+    font-family: var(--font-display) !important;
     margin-top: 0.2rem !important;
     margin-bottom: 0.55rem !important;
 }
@@ -484,7 +498,7 @@ main,
 
 .metric-grid {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
     gap: 12px;
 }
 
@@ -530,6 +544,130 @@ main,
     background-repeat: no-repeat;
 }
 
+.result-panel {
+    overflow: hidden;
+}
+
+.result-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 14px;
+}
+
+.result-kicker,
+.validation-kicker {
+    color: #178b83;
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.result-title {
+    margin-top: 4px;
+    color: #141a1f;
+    font-family: var(--font-display);
+    font-size: 2rem;
+    font-weight: 800;
+    line-height: 1.05;
+}
+
+.result-copy {
+    max-width: 760px;
+    color: #5f6f7a;
+    line-height: 1.45;
+}
+
+.result-pill {
+    border: 1px solid rgba(34, 211, 197, 0.36);
+    border-radius: 999px;
+    background: rgba(34, 211, 197, 0.1);
+    color: #146963;
+    font-size: 0.78rem;
+    font-weight: 900;
+    padding: 8px 12px;
+    white-space: nowrap;
+}
+
+.validation-panel {
+    border: 1px solid rgba(17, 20, 23, 0.1);
+    border-radius: 12px;
+    background: #ffffff;
+    padding: 12px;
+    margin-bottom: 12px;
+}
+
+.validation-items {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.validation-item {
+    border: 1px solid rgba(17, 20, 23, 0.1);
+    border-radius: 10px;
+    padding: 10px;
+    background: #f8fbfb;
+}
+
+.validation-item.success {
+    border-color: rgba(34, 211, 197, 0.42);
+    background: rgba(34, 211, 197, 0.09);
+}
+
+.validation-item.warning {
+    border-color: rgba(247, 201, 72, 0.5);
+    background: rgba(247, 201, 72, 0.14);
+}
+
+.validation-item.error {
+    border-color: rgba(255, 107, 95, 0.48);
+    background: rgba(255, 107, 95, 0.11);
+}
+
+.validation-title {
+    color: #141a1f;
+    font-weight: 900;
+}
+
+.validation-message {
+    margin-top: 4px;
+    color: #5f6f7a;
+    font-size: 0.84rem;
+    line-height: 1.35;
+}
+
+.download-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.download-chip {
+    min-height: 74px;
+    border: 1px dashed rgba(17, 20, 23, 0.18);
+    border-radius: 12px;
+    background: #f8fbfb;
+    padding: 12px;
+    opacity: 0.78;
+}
+
+.download-chip-title {
+    color: #141a1f;
+    font-weight: 900;
+}
+
+.download-chip-note {
+    margin-top: 4px;
+    color: #6c7b86;
+    font-size: 0.82rem;
+    line-height: 1.35;
+}
+
 @media (max-width: 900px) {
     .hero-strip,
     .metric-grid,
@@ -541,7 +679,16 @@ main,
         display: block;
     }
 
+    .result-header {
+        display: block;
+    }
+
     .model-pill {
+        display: inline-block;
+        margin-top: 12px;
+    }
+
+    .result-pill {
         display: inline-block;
         margin-top: 12px;
     }
@@ -559,7 +706,9 @@ main,
     .hero-strip,
     .metric-grid,
     .dataset-summary-grid,
-    .truck-card-grid {
+    .truck-card-grid,
+    .validation-items,
+    .download-grid {
         grid-template-columns: 1fr;
     }
 
@@ -588,6 +737,7 @@ main,
 
 
 BOX_PREVIEW_HEADERS = ["Box", "Dimensions", "Volume"]
+ROUTE_PREVIEW_HEADERS = ["Stop", "Customer", "Location", "Boxes", "Status"]
 
 
 def default_demo_label() -> str:
@@ -674,6 +824,269 @@ def dataset_summary_html(bundle: DatasetBundle | None, error: str | None = None)
     return f'<div class="dataset-summary-grid">{items}</div>{warning_html}'
 
 
+def selected_truck_dimensions(truck_name: str) -> tuple[float, float, float]:
+    preset = get_preset(truck_name)
+    return (float(preset.length_mm), float(preset.width_mm), float(preset.height_mm))
+
+
+def validation_results(bundle: DatasetBundle | None, truck_name: str):
+    if bundle is None:
+        return []
+    return validate_data_quality(bundle.data, truck_dimensions_mm=selected_truck_dimensions(truck_name))
+
+
+def validation_panel_html(bundle: DatasetBundle | None, truck_name: str, error: str | None = None) -> str:
+    if error:
+        return f"""
+        <div class="validation-panel">
+            <div class="validation-kicker">Readiness check</div>
+            <div class="validation-items">
+                <div class="validation-item error">
+                    <div class="validation-title">Dataset unavailable</div>
+                    <div class="validation-message">{escape(error)}</div>
+                </div>
+            </div>
+        </div>
+        """
+
+    if bundle is None:
+        return """
+        <div class="validation-panel">
+            <div class="validation-kicker">Readiness check</div>
+            <div class="validation-items">
+                <div class="validation-item warning">
+                    <div class="validation-title">Awaiting dataset</div>
+                    <div class="validation-message">Choose a demo dataset or upload JSON to enable readiness checks.</div>
+                </div>
+            </div>
+        </div>
+        """
+
+    items = []
+    for result in validation_results(bundle, truck_name):
+        items.append(
+            f"""
+            <div class="validation-item {escape(result.severity)}">
+                <div class="validation-title">{escape(result.title)}</div>
+                <div class="validation-message">{escape(result.message)}</div>
+            </div>
+            """
+        )
+    return f"""
+    <div class="validation-panel">
+        <div class="validation-kicker">Readiness check</div>
+        <div class="validation-items">{"".join(items)}</div>
+    </div>
+    """
+
+
+def dashboard_header_html(bundle: DatasetBundle | None, truck_name: str, variant_name: str) -> str:
+    dataset_name = bundle.summary.instance_name if bundle else "Awaiting dataset"
+    return f"""
+    <div class="result-header">
+        <div>
+            <div class="result-kicker">Visual results dashboard</div>
+            <div class="result-title">Run story board</div>
+            <div class="result-copy">
+                A polished preview of the metrics, route geometry, and downloads that will be filled
+                after the proposed GA execution milestone.
+            </div>
+        </div>
+        <div class="result-pill">{escape(dataset_name)} | {escape(truck_name)} | {escape(variant_name)}</div>
+    </div>
+    """
+
+
+def result_metrics_html(
+    bundle: DatasetBundle | None,
+    truck_name: str,
+    variant_name: str,
+    error: str | None = None,
+) -> str:
+    if error or bundle is None:
+        cards = [
+            ("Readiness", "Blocked", "Upload or select a valid dataset"),
+            ("Customers", "Pending", "Waiting for dataset"),
+            ("Boxes", "Pending", "Waiting for dataset"),
+            ("Selected truck", truck_name, variant_name),
+            ("Proposed GA", "Pending", "Execution arrives in a later milestone"),
+        ]
+    else:
+        results = validation_results(bundle, truck_name)
+        blocked = has_blocking_results(results)
+        preset = get_preset(truck_name)
+        truck_volume = preset.length_mm * preset.width_mm * preset.height_mm
+        truck_fill = bundle.summary.total_box_volume_mm3 / truck_volume * 100 if truck_volume else 0
+        warnings = sum(1 for result in results if result.severity == "warning")
+        cards = [
+            ("Readiness", "Blocked" if blocked else "Ready", "Validation gate for future run"),
+            ("Customers", f"{bundle.summary.real_customer_count}", "Max hosted demo: 100"),
+            ("Boxes", f"{bundle.summary.box_count}", f"Warnings: {warnings}"),
+            ("Truck fill", f"{truck_fill:.1f}%", f"{format_liters(bundle.summary.total_box_volume_mm3)} total box volume"),
+            ("Selected truck", preset.name, variant_name),
+            ("Proposed GA", "Pending", "No solver execution in M4"),
+        ]
+
+    items = "\n".join(
+        f"""
+        <div class="metric-card">
+            <div class="metric-label">{escape(label)}</div>
+            <div class="metric-value">{escape(value)}</div>
+            <div class="metric-note">{escape(note)}</div>
+        </div>
+        """
+        for label, value, note in cards
+    )
+    return f'<div class="metric-grid">{items}</div>'
+
+
+def route_preview_rows(bundle: DatasetBundle | None, limit: int = 8) -> list[list[str]]:
+    if bundle is None:
+        return []
+
+    rows = []
+    stop = 1
+    for customer in bundle.data["customers"]:
+        if customer.get("is_depot"):
+            continue
+        customer_id = customer.get("customer_id", customer.get("id", stop))
+        customer_label = customer.get("customer_name") or customer.get("name") or f"Customer {customer_id}"
+        location = coordinates_label(customer)
+        box_count = len(customer.get("assigned_boxes", []))
+        rows.append([f"Stop {stop}", str(customer_label), location, str(box_count), "Awaiting proposed GA"])
+        stop += 1
+        if len(rows) >= limit:
+            break
+    return rows
+
+
+def coordinates_label(customer: dict) -> str:
+    try:
+        return f"{float(customer['x']):.1f}, {float(customer['y']):.1f}"
+    except (KeyError, TypeError, ValueError):
+        return "Coordinates unavailable"
+
+
+def route_plot_figure(bundle: DatasetBundle | None):
+    fig, ax = plt.subplots(figsize=(7.2, 4.2), facecolor="#f8fbfb")
+    ax.set_facecolor("#f8fbfb")
+    ax.grid(True, color="#dce5e8", linewidth=0.8)
+    ax.tick_params(colors="#5e6d78")
+    for spine in ax.spines.values():
+        spine.set_color("#cbd7dc")
+
+    if bundle is None:
+        ax.text(0.5, 0.5, "Upload or choose a dataset to preview route geometry.", ha="center", va="center")
+        ax.set_axis_off()
+        return fig
+
+    depot_points = []
+    customer_points = []
+    for customer in bundle.data["customers"]:
+        try:
+            point = (float(customer["x"]), float(customer["y"]))
+        except (KeyError, TypeError, ValueError):
+            continue
+        if customer.get("is_depot"):
+            depot_points.append(point)
+        else:
+            customer_points.append(point)
+
+    if not customer_points and not depot_points:
+        ax.text(0.5, 0.5, "Coordinates unavailable for this dataset.", ha="center", va="center")
+        ax.set_axis_off()
+        return fig
+
+    if customer_points:
+        xs, ys = zip(*customer_points, strict=True)
+        ax.scatter(xs, ys, s=42, c="#22d3c5", edgecolors="#111417", linewidths=0.5, alpha=0.88, label="Customers")
+    if depot_points:
+        dx, dy = zip(*depot_points, strict=True)
+        ax.scatter(dx, dy, s=95, marker="s", c="#ff6b5f", edgecolors="#111417", linewidths=0.7, label="Depot")
+
+    ax.set_title(f"Customer layout preview - {bundle.summary.instance_name}", color="#141a1f", fontsize=11, weight="bold")
+    ax.set_xlabel("X coordinate", color="#45545f")
+    ax.set_ylabel("Y coordinate", color="#45545f")
+    ax.legend(frameon=False, loc="best")
+    fig.tight_layout()
+    return fig
+
+
+def convergence_placeholder_html(bundle: DatasetBundle | None = None) -> str:
+    dataset_name = bundle.summary.instance_name if bundle else "awaiting dataset"
+    return f"""
+    <div class="placeholder-chart" aria-label="Convergence placeholder"></div>
+    <p class="dataset-card-note">
+        Future convergence trace for {escape(dataset_name)}. The chart remains a styled placeholder until
+        proposed-GA execution is connected.
+    </p>
+    """
+
+
+def download_placeholder_html(bundle: DatasetBundle | None, blocked: bool) -> str:
+    status = "Blocked by validation" if blocked else "Prepared after proposed GA run"
+    dataset_name = bundle.summary.instance_name if bundle else "No dataset selected"
+    chips = [
+        ("Normalized dataset JSON", dataset_name),
+        ("Result JSON", status),
+        ("Metrics CSV", status),
+    ]
+    items = "\n".join(
+        f"""
+        <div class="download-chip">
+            <div class="download-chip-title">{escape(title)}</div>
+            <div class="download-chip-note">{escape(note)}</div>
+        </div>
+        """
+        for title, note in chips
+    )
+    return f'<div class="download-grid">{items}</div>'
+
+
+def dashboard_outputs(
+    source: str,
+    demo_label: str | None,
+    uploaded_file,
+    truck_name: str,
+    variant_name: str,
+):
+    try:
+        bundle = current_dataset_bundle(source, demo_label, uploaded_file)
+    except DatasetError as exc:
+        error = str(exc)
+        return (
+            dataset_helper(source, error=error),
+            dataset_summary_html(None, error=error),
+            [],
+            ready_status(source, truck_name, variant_name),
+            dashboard_header_html(None, truck_name, variant_name),
+            validation_panel_html(None, truck_name, error=error),
+            result_metrics_html(None, truck_name, variant_name, error=error),
+            [],
+            route_plot_figure(None),
+            convergence_placeholder_html(None),
+            download_placeholder_html(None, blocked=True),
+            gr.update(interactive=False),
+        )
+
+    results = validation_results(bundle, truck_name)
+    blocked = has_blocking_results(results)
+    return (
+        dataset_helper(source, bundle=bundle),
+        dataset_summary_html(bundle),
+        box_preview_rows(bundle),
+        ready_status(source, truck_name, variant_name, dataset_label=bundle.summary.instance_name),
+        dashboard_header_html(bundle, truck_name, variant_name),
+        validation_panel_html(bundle, truck_name),
+        result_metrics_html(bundle, truck_name, variant_name),
+        route_preview_rows(bundle),
+        route_plot_figure(bundle),
+        convergence_placeholder_html(bundle),
+        download_placeholder_html(bundle, blocked=blocked),
+        gr.update(interactive=not blocked),
+    )
+
+
 def dataset_outputs(
     source: str,
     demo_label: str | None,
@@ -748,50 +1161,38 @@ def ready_status(
 
 
 def update_dataset_source(source: str, demo_label: str, uploaded_file, truck_name: str, variant_name: str):
-    helper, summary, preview, status = dataset_outputs(
-        source, demo_label, uploaded_file, truck_name, variant_name
-    )
+    outputs = dashboard_outputs(source, demo_label, uploaded_file, truck_name, variant_name)
     return (
-        helper,
+        outputs[0],
         gr.update(visible=source == "Upload dataset"),
         gr.update(visible=source == "Demo dataset"),
-        summary,
-        preview,
-        status,
+        *outputs[1:],
     )
 
 
 def update_dataset_selection(source: str, demo_label: str, uploaded_file, truck_name: str, variant_name: str):
-    return dataset_outputs(source, demo_label, uploaded_file, truck_name, variant_name)
+    return dashboard_outputs(source, demo_label, uploaded_file, truck_name, variant_name)
 
 
 def update_truck_class(source: str, demo_label: str, uploaded_file, truck_name: str):
     selected_variant = default_variant_name(truck_name)
-    try:
-        bundle = current_dataset_bundle(source, demo_label, uploaded_file)
-        dataset_label = bundle.summary.instance_name if bundle else None
-    except DatasetError:
-        dataset_label = None
+    dashboard = dashboard_outputs(source, demo_label, uploaded_file, truck_name, selected_variant)
     return (
         gr.update(choices=variant_names(truck_name), value=selected_variant),
         format_dimensions(truck_name),
         truck_cards_html(truck_name),
         model_path_for(truck_name, selected_variant),
         selected_asset_html(truck_name, selected_variant),
-        ready_status(source, truck_name, selected_variant, dataset_label=dataset_label),
+        *dashboard[3:],
     )
 
 
 def update_body_style(source: str, demo_label: str, uploaded_file, truck_name: str, variant_name: str):
-    try:
-        bundle = current_dataset_bundle(source, demo_label, uploaded_file)
-        dataset_label = bundle.summary.instance_name if bundle else None
-    except DatasetError:
-        dataset_label = None
+    dashboard = dashboard_outputs(source, demo_label, uploaded_file, truck_name, variant_name)
     return (
         model_path_for(truck_name, variant_name),
         selected_asset_html(truck_name, variant_name),
-        ready_status(source, truck_name, variant_name, dataset_label=dataset_label),
+        *dashboard[3:],
     )
 
 
@@ -804,6 +1205,23 @@ def run_placeholder(source: str, demo_label: str, uploaded_file, truck_name: str
         dataset_label = bundle.summary.instance_name if bundle else "Awaiting dataset"
     except DatasetError as exc:
         dataset_label = f"Unavailable ({exc})"
+        return (
+            "### Run blocked by validation\n"
+            f"Dataset source: **{source}**\n\n"
+            f"Dataset: **{dataset_label}**\n\n"
+            "Resolve the dataset issue before preparing the future proposed-GA run."
+        )
+
+    results = validation_results(bundle, truck_name) if bundle else []
+    if has_blocking_results(results):
+        blocking_titles = ", ".join(result.title for result in results if result.blocking)
+        return (
+            "### Run blocked by validation\n"
+            f"Dataset source: **{source}**\n\n"
+            f"Dataset: **{dataset_label}**\n\n"
+            f"Blocking checks: **{blocking_titles}**\n\n"
+            "Fix the dataset before the proposed-GA execution milestone can use it."
+        )
 
     return (
         "### Proposed GA run queued for a later milestone\n"
@@ -813,7 +1231,7 @@ def run_placeholder(source: str, demo_label: str, uploaded_file, truck_name: str
         f"Indian-equivalent class: **{preset.indian_equivalent}**\n\n"
         f"Body style: **{variant.name}**\n\n"
         f"Internal load space: **{dims}**\n\n"
-        "Validation, solver execution, and animated box loading remain placeholders in M3."
+        "M4 validates readiness and previews the results dashboard; solver execution and animated box loading remain later milestones."
     )
 
 
@@ -922,6 +1340,13 @@ def build_app() -> gr.Blocks:
     default_variant = default_variant_name(default_truck)
     default_dataset = default_demo_label()
     default_bundle = load_demo_dataset(default_dataset)
+    default_dashboard = dashboard_outputs(
+        "Demo dataset",
+        default_dataset,
+        None,
+        default_truck,
+        default_variant,
+    )
 
     with gr.Blocks(title="GA-Based Truck Loading") as demo:
         with gr.Column(elem_classes=["app-shell"]):
@@ -1003,12 +1428,7 @@ def build_app() -> gr.Blocks:
 
                     run_button = gr.Button("Prepare visual run", variant="primary")
                     run_status = gr.Markdown(
-                        ready_status(
-                            "Demo dataset",
-                            default_truck,
-                            default_variant,
-                            dataset_label=default_bundle.summary.instance_name,
-                        ),
+                        default_dashboard[3],
                         elem_classes=["run-status"],
                     )
 
@@ -1030,26 +1450,28 @@ def build_app() -> gr.Blocks:
                         )
 
             with gr.Column(elem_classes=["result-panel"]):
-                gr.Markdown("## Result preview")
-                gr.HTML(metrics_html())
+                dashboard_header = gr.HTML(default_dashboard[4])
+                validation_status = gr.HTML(default_dashboard[5])
+                result_metrics = gr.HTML(default_dashboard[6])
                 with gr.Row():
                     with gr.Column(scale=1):
                         gr.Markdown("### Convergence preview")
-                        gr.HTML('<div class="placeholder-chart"></div>')
+                        convergence_preview = gr.HTML(default_dashboard[9])
                     with gr.Column(scale=1):
-                        gr.Markdown("### Route summary")
-                        gr.Dataframe(
-                            headers=["Route", "Distance", "Packed Boxes", "Fill", "Status"],
-                            value=[
-                                ["Route 1", "Pending", "Pending", "Pending", "Awaiting run"],
-                                ["Route 2", "Pending", "Pending", "Pending", "Awaiting run"],
-                            ],
+                        gr.Markdown("### Customer geometry")
+                        route_plot = gr.Plot(value=default_dashboard[8], show_label=False)
+                with gr.Row():
+                    with gr.Column(scale=1):
+                        gr.Markdown("### Route preview")
+                        route_summary = gr.Dataframe(
+                            headers=ROUTE_PREVIEW_HEADERS,
+                            value=default_dashboard[7],
                             interactive=False,
                             wrap=True,
                         )
-                gr.Markdown(
-                    "Downloads for normalized dataset, result JSON, and metrics CSV arrive with the execution milestone."
-                )
+                    with gr.Column(scale=1):
+                        gr.Markdown("### Downloads")
+                        downloads_placeholder = gr.HTML(default_dashboard[10])
 
         dataset_source.change(
             fn=update_dataset_source,
@@ -1061,17 +1483,51 @@ def build_app() -> gr.Blocks:
                 dataset_summary,
                 box_preview,
                 run_status,
+                dashboard_header,
+                validation_status,
+                result_metrics,
+                route_summary,
+                route_plot,
+                convergence_preview,
+                downloads_placeholder,
+                run_button,
             ],
         )
         demo_dataset.change(
             fn=update_dataset_selection,
             inputs=[dataset_source, demo_dataset, upload_file, truck_preset, truck_variant],
-            outputs=[dataset_status, dataset_summary, box_preview, run_status],
+            outputs=[
+                dataset_status,
+                dataset_summary,
+                box_preview,
+                run_status,
+                dashboard_header,
+                validation_status,
+                result_metrics,
+                route_summary,
+                route_plot,
+                convergence_preview,
+                downloads_placeholder,
+                run_button,
+            ],
         )
         upload_file.change(
             fn=update_dataset_selection,
             inputs=[dataset_source, demo_dataset, upload_file, truck_preset, truck_variant],
-            outputs=[dataset_status, dataset_summary, box_preview, run_status],
+            outputs=[
+                dataset_status,
+                dataset_summary,
+                box_preview,
+                run_status,
+                dashboard_header,
+                validation_status,
+                result_metrics,
+                route_summary,
+                route_plot,
+                convergence_preview,
+                downloads_placeholder,
+                run_button,
+            ],
         )
         truck_preset.change(
             fn=update_truck_class,
@@ -1083,12 +1539,32 @@ def build_app() -> gr.Blocks:
                 truck_model,
                 variant_description,
                 run_status,
+                dashboard_header,
+                validation_status,
+                result_metrics,
+                route_summary,
+                route_plot,
+                convergence_preview,
+                downloads_placeholder,
+                run_button,
             ],
         )
         truck_variant.change(
             fn=update_body_style,
             inputs=[dataset_source, demo_dataset, upload_file, truck_preset, truck_variant],
-            outputs=[truck_model, variant_description, run_status],
+            outputs=[
+                truck_model,
+                variant_description,
+                run_status,
+                dashboard_header,
+                validation_status,
+                result_metrics,
+                route_summary,
+                route_plot,
+                convergence_preview,
+                downloads_placeholder,
+                run_button,
+            ],
         )
         run_button.click(
             fn=run_placeholder,
