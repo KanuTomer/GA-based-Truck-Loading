@@ -1246,7 +1246,7 @@ gradio-app {
 
 .command-bar {
     display: grid !important;
-    grid-template-columns: minmax(230px, 1fr) minmax(340px, 1.35fr) minmax(230px, 0.86fr) minmax(220px, 0.78fr);
+    grid-template-columns: minmax(250px, 1fr) minmax(360px, 1.45fr) minmax(270px, 0.95fr);
     gap: 12px !important;
     align-items: start !important;
 }
@@ -1263,6 +1263,22 @@ gradio-app {
     background: rgba(255, 255, 255, 0.045);
     padding: 12px;
     overflow: hidden !important;
+}
+
+.command-panel,
+.command-panel *,
+.command-cell,
+.command-cell * {
+    scrollbar-width: none !important;
+}
+
+.command-panel::-webkit-scrollbar,
+.command-panel *::-webkit-scrollbar,
+.command-cell::-webkit-scrollbar,
+.command-cell *::-webkit-scrollbar {
+    width: 0 !important;
+    height: 0 !important;
+    display: none !important;
 }
 
 .dataset-status-strip {
@@ -2211,14 +2227,13 @@ gradio-app {
 }
 
 .truck-body-card-radio label:has(input[type="radio"])::before {
-    left: 96px !important;
-    width: 16px !important;
-    height: 16px !important;
+    display: none !important;
+    content: none !important;
 }
 
 .truck-body-card-radio label:has(input[type="radio"]:checked)::before {
-    border-color: rgba(236, 255, 251, 0.8) !important;
-    background: rgba(236, 255, 251, 0.18) !important;
+    display: none !important;
+    content: none !important;
 }
 
 .truck-body-card-radio label:has(input[type="radio"]:checked) input + span,
@@ -2430,8 +2445,8 @@ gradio-app {
 
 BOX_PREVIEW_HEADERS = ["Box", "Dimensions", "Volume"]
 ROUTE_PREVIEW_HEADERS = ["Route / stop", "Customers", "Distance / location", "Boxes", "Status"]
-BUILD_LABEL = "M5.12 truck card selector cleanup build"
-BUILD_TARGET = "127.0.0.1:7876+"
+BUILD_LABEL = "M5.13 run setup cleanup build"
+BUILD_TARGET = "127.0.0.1:7891+"
 
 TRUCK_BODY_OPTIONS = (
     ("City Mini Truck", "Open pickup body"),
@@ -3302,24 +3317,6 @@ def hero_html() -> str:
             A cinematic interface for showing how a proposed genetic algorithm turns customer
             routes into physically packed truck loads.
         </p>
-        <div class="hero-strip">
-            <div class="strip-item">
-                <div class="strip-label">Dataset</div>
-                <div class="strip-value">Demo or upload</div>
-            </div>
-            <div class="strip-item">
-                <div class="strip-label">Truck</div>
-                <div class="strip-value">Two visual classes</div>
-            </div>
-            <div class="strip-item">
-                <div class="strip-label">Model</div>
-                <div class="strip-value">Proposed GA only</div>
-            </div>
-            <div class="strip-item">
-                <div class="strip-label">Payoff</div>
-                <div class="strip-value">3D packed load</div>
-            </div>
-        </div>
     </section>
     """
 
@@ -3471,12 +3468,6 @@ def build_app() -> gr.Blocks:
                                     show_label=False,
                                     interactive=True,
                                 )
-                    with gr.Column(scale=1, min_width=220, elem_classes=["command-cell", "run-action-cell"]):
-                        gr.Markdown("Run", elem_classes=["field-heading"])
-                        gr.Markdown(
-                            "Quick defaults are tuned for the browser demo. Larger runs are available from the sliders.",
-                            elem_classes=["run-action-copy"],
-                        )
                         run_button = gr.Button("Run proposed GA", variant="primary")
                 dataset_status = gr.Markdown(
                     dataset_helper("Demo dataset", bundle=default_bundle),
