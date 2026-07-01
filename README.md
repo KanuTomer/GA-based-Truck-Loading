@@ -1,8 +1,8 @@
 ---
 title: GA-Based Truck Loading
 emoji: 🚚
-colorFrom: cyan
-colorTo: teal
+colorFrom: blue
+colorTo: green
 sdk: gradio
 sdk_version: 6.19.0
 app_file: app.py
