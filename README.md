@@ -4,6 +4,7 @@ emoji: 🚚
 colorFrom: cyan
 colorTo: teal
 sdk: gradio
+sdk_version: 6.19.0
 app_file: app.py
 pinned: false
 ---
@@ -14,13 +15,13 @@ Portfolio-style visual demo for a genetic-algorithm-based truck loading and rout
 
 This repository is the standalone web-app project for a visual GA-based truck loading demo. App development, commits, deployment, and future merges happen here while the original research prototype remains separate.
 
-## Planned MVP
+## Current Demo
 
-- Upload or choose a demo dataset.
-- Select one of two India-oriented truck classes with a 3D body-style preview.
+- Upload or choose one of the bundled demo datasets.
+- Select a truck body from four India-oriented visual options.
 - Validate customers, boxes, assignments, and container dimensions.
-- Run a capped version of the proposed GA model.
-- Inspect metrics, routes, and an animated 3D truck-packing visualization.
+- Run a capped proposed GA model with quick demo defaults.
+- Inspect metrics, routes, downloadable artifacts, and an animated 3D truck-packing visualization.
 
 ## Repository Scope
 
@@ -40,11 +41,11 @@ The truck preview models use selected assets from Kenney Car Kit 3.1, licensed
 under Creative Commons Zero (CC0). Credit is not required, but the original
 license is included under `assets/kenney-car-kit/License.txt`.
 
-## Development Status
+## Demo Status
 
-Milestone 5 connects a capped proposed-GA runtime, real rotation-enabled packing
-placements, downloadable run artifacts, and an animated procedural 3D truck
-loading viewer.
+The current demo connects a capped proposed-GA runtime, real rotation-enabled
+packing placements, downloadable run artifacts, and an animated procedural 3D
+truck loading viewer.
 
 ## Running And Hosting
 

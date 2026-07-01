@@ -28,7 +28,6 @@ from truck_loading.ga import ProposedGAConfig, run_proposed_ga
 from truck_loading.presets import (
     ASSET_ROOT,
     default_variant_name,
-    format_dimensions,
     get_preset,
     preset_names,
     preview_path_for,
@@ -103,11 +102,6 @@ main,
     padding: 16px;
 }
 
-.main-workspace {
-    align-items: stretch;
-    flex-wrap: wrap !important;
-}
-
 .hero {
     background: #111417;
     border: 1px solid rgba(255, 255, 255, 0.12);
@@ -138,33 +132,6 @@ main,
     color: #d6dde3;
     font-size: 1.06rem;
     line-height: 1.55;
-}
-
-.hero-strip {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 10px;
-    margin-top: 24px;
-}
-
-.strip-item {
-    min-height: 74px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    background: rgba(255, 255, 255, 0.055);
-    border-radius: 10px;
-    padding: 12px;
-}
-
-.strip-label {
-    color: var(--text-muted);
-    font-size: 0.78rem;
-}
-
-.strip-value {
-    margin-top: 6px;
-    color: var(--text-main);
-    font-size: 1rem;
-    font-weight: 800;
 }
 
 .site-footer {
@@ -366,211 +333,6 @@ main,
 .stage-panel .result-pill {
     color: #d9fffb;
     background: rgba(34, 211, 197, 0.08);
-}
-
-.truck-card-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
-    margin: 12px 0 14px;
-}
-
-.truck-card {
-    min-height: 214px;
-    border: 1px solid rgba(17, 20, 23, 0.12);
-    border-radius: 12px;
-    padding: 12px;
-    background:
-        linear-gradient(145deg, rgba(34, 211, 197, 0.11), transparent 44%),
-        linear-gradient(320deg, rgba(247, 201, 72, 0.14), transparent 36%),
-        #ffffff;
-    box-shadow: 0 14px 32px rgba(35, 47, 58, 0.1);
-    overflow: hidden;
-}
-
-.truck-card.is-selected {
-    border-color: rgba(34, 211, 197, 0.82);
-    box-shadow: 0 16px 38px rgba(34, 211, 197, 0.18);
-}
-
-.truck-card-visuals {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
-    margin-bottom: 12px;
-}
-
-.truck-thumb {
-    display: grid;
-    min-height: 82px;
-    place-items: center;
-    border: 1px solid rgba(17, 20, 23, 0.1);
-    border-radius: 10px;
-    background:
-        radial-gradient(circle at 50% 18%, rgba(34, 211, 197, 0.18), transparent 42%),
-        #eff4f5;
-}
-
-.truck-thumb img {
-    width: 72px;
-    height: 72px;
-    object-fit: contain;
-    image-rendering: auto;
-    filter: drop-shadow(0 12px 14px rgba(17, 20, 23, 0.18));
-}
-
-.truck-card-kicker {
-    color: #51616f;
-    font-size: 0.72rem;
-    font-weight: 800;
-    text-transform: uppercase;
-}
-
-.truck-card-title {
-    margin-top: 8px;
-    color: #141a1f;
-    font-size: 1.05rem;
-    font-weight: 900;
-}
-
-.truck-card-dims {
-    margin-top: 8px;
-    color: #556471;
-    font-size: 0.86rem;
-    line-height: 1.35;
-}
-
-.truck-card-bodies {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin-top: 12px;
-}
-
-.body-chip {
-    border: 1px solid rgba(17, 20, 23, 0.12);
-    border-radius: 999px;
-    padding: 4px 8px;
-    background: #eef4f5;
-    color: #26333c;
-    font-size: 0.72rem;
-    font-weight: 800;
-}
-
-.truck-class-radio,
-.body-style-radio {
-    margin-top: 8px;
-}
-
-.model-stage {
-    position: relative;
-    min-height: 630px;
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background:
-        radial-gradient(circle at 74% 22%, rgba(247, 201, 72, 0.18), transparent 22%),
-        linear-gradient(160deg, rgba(34, 211, 197, 0.16), transparent 28%),
-        linear-gradient(340deg, rgba(255, 107, 95, 0.1), transparent 30%),
-        #101418;
-    overflow: hidden;
-    padding: 18px;
-}
-
-.model-stage-header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 14px;
-    margin-bottom: 12px;
-}
-
-.model-stage-kicker {
-    color: var(--teal);
-    font-size: 0.76rem;
-    font-weight: 900;
-    text-transform: uppercase;
-}
-
-.model-stage-title {
-    margin-top: 6px;
-    color: var(--text-main);
-    font-size: 1.55rem;
-    font-weight: 900;
-}
-
-.model-stage-copy {
-    max-width: 690px;
-    color: #c7d0d8;
-    line-height: 1.45;
-}
-
-.model-pill {
-    border: 1px solid rgba(34, 211, 197, 0.35);
-    border-radius: 999px;
-    padding: 8px 11px;
-    color: #d9fffb;
-    background: rgba(34, 211, 197, 0.08);
-    font-size: 0.78rem;
-    font-weight: 900;
-    white-space: nowrap;
-}
-
-.model-frame {
-    overflow: hidden;
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    background:
-        linear-gradient(rgba(255, 255, 255, 0.055) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.055) 1px, transparent 1px),
-        #0f1418;
-    background-size: 44px 44px;
-    box-shadow:
-        inset 0 0 58px rgba(34, 211, 197, 0.08),
-        0 18px 42px rgba(0, 0, 0, 0.24);
-}
-
-.asset-preview-band {
-    display: grid;
-    grid-template-columns: 82px minmax(0, 1fr);
-    align-items: center;
-    gap: 14px;
-    margin-top: 12px;
-    border: 1px solid rgba(17, 20, 23, 0.1);
-    border-radius: 12px;
-    background: #f9fbfb;
-    padding: 12px;
-}
-
-.selected-preview {
-    display: grid;
-    min-height: 82px;
-    place-items: center;
-    border-radius: 12px;
-    background:
-        radial-gradient(circle at 50% 20%, rgba(34, 211, 197, 0.22), transparent 45%),
-        #eef4f5;
-}
-
-.selected-preview img {
-    width: 72px;
-    height: 72px;
-    object-fit: contain;
-    filter: drop-shadow(0 18px 22px rgba(0, 0, 0, 0.32));
-}
-
-.variant-copy {
-    margin: 0;
-}
-
-.variant-copy,
-.variant-copy p,
-.variant-copy h3,
-.variant-copy strong {
-    color: #1c252c !important;
-}
-
-.variant-copy .prose {
-    font-size: 0.92rem !important;
 }
 
 .metric-grid {
@@ -808,7 +570,7 @@ main,
     line-height: 1.05;
 }
 
-/* M5.2 midnight glass pass */
+/* Midnight glass theme */
 body,
 gradio-app {
     background: #05090d !important;
@@ -866,8 +628,7 @@ gradio-app {
 .dataset-card,
 .validation-panel,
 .validation-item,
-.download-chip,
-.asset-preview-band {
+.download-chip {
     border-color: rgba(125, 246, 239, 0.14) !important;
     background: rgba(255, 255, 255, 0.055) !important;
     color: #e7f1f4 !important;
@@ -879,81 +640,8 @@ gradio-app {
 .validation-title,
 .validation-message,
 .download-chip-title,
-.download-chip-note,
-.variant-copy,
-.variant-copy p,
-.variant-copy h3,
-.variant-copy strong {
+.download-chip-note {
     color: #e7f1f4 !important;
-}
-
-.truck-card {
-    min-height: 206px;
-    border-color: rgba(125, 246, 239, 0.17);
-    background:
-        linear-gradient(145deg, rgba(34, 211, 197, 0.13), transparent 46%),
-        linear-gradient(320deg, rgba(247, 201, 72, 0.08), transparent 36%),
-        rgba(255, 255, 255, 0.065);
-}
-
-.truck-card-kicker,
-.truck-card-title,
-.truck-card-dims,
-.body-chip {
-    color: #e7f1f4;
-}
-
-.truck-card-dims {
-    font-size: 0.78rem;
-}
-
-.truck-thumb,
-.selected-preview {
-    min-height: 78px;
-    background:
-        radial-gradient(circle at 50% 18%, rgba(34, 211, 197, 0.22), transparent 42%),
-        rgba(255, 255, 255, 0.07);
-}
-
-.truck-thumb img,
-.selected-preview img {
-    width: 68px;
-    height: 68px;
-    max-width: 68px;
-    max-height: 68px;
-    object-fit: contain;
-}
-
-.body-chip {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(125, 246, 239, 0.18);
-}
-
-.model-stage {
-    min-height: 0;
-    padding: 12px;
-    border-color: rgba(125, 246, 239, 0.17);
-    background:
-        radial-gradient(circle at 74% 22%, rgba(34, 211, 197, 0.12), transparent 24%),
-        linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.025)),
-        rgba(5, 9, 13, 0.72);
-}
-
-.model-stage-header {
-    margin-bottom: 8px;
-}
-
-.model-stage-title {
-    font-size: 1.15rem;
-}
-
-.model-stage-copy {
-    font-size: 0.82rem;
-}
-
-.model-frame {
-    background: #070c11;
-    background-size: auto;
 }
 
 .packing-viewer-frame {
@@ -1016,7 +704,7 @@ gradio-app {
     color: #e7f1f4 !important;
 }
 
-/* M5.3/M5.4 cockpit layout and stronger midnight polish */
+/* Dashboard layout and midnight polish */
 .build-badge {
     display: flex;
     align-items: center;
@@ -1037,94 +725,6 @@ gradio-app {
     color: #8aa0b4;
 }
 
-.cockpit-workspace {
-    display: grid !important;
-    grid-template-columns: minmax(280px, 0.86fr) minmax(460px, 1.55fr) minmax(260px, 0.82fr);
-    align-items: start !important;
-    gap: 14px !important;
-    flex-wrap: nowrap !important;
-}
-
-.cockpit-workspace > div {
-    min-width: 0 !important;
-    width: 100% !important;
-}
-
-.viewer-panel,
-.metrics-panel {
-    border: 1px solid rgba(125, 246, 239, 0.18);
-    border-radius: 14px;
-    background: rgba(10, 16, 23, 0.72);
-    box-shadow: 0 28px 80px rgba(0, 0, 0, 0.28);
-    backdrop-filter: blur(18px);
-    padding: 14px;
-}
-
-.viewer-panel {
-    min-height: 0 !important;
-}
-
-.viewer-panel .result-header {
-    display: block;
-    margin-bottom: 10px;
-}
-
-.viewer-panel .result-title {
-    color: #e7f1f4;
-    font-size: 1.25rem;
-}
-
-.viewer-panel .result-copy {
-    color: #9fb0bb;
-    font-size: 0.8rem;
-}
-
-.viewer-panel .result-pill {
-    display: inline-block;
-    margin-top: 10px;
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.viewer-panel .packing-viewer-section {
-    margin-top: 0;
-}
-
-.viewer-panel .packing-viewer-section h3 {
-    display: none;
-}
-
-.viewer-panel .packing-viewer-frame {
-    min-height: 500px;
-}
-
-.viewer-panel .packing-viewer-empty {
-    min-height: 500px;
-    align-content: center;
-}
-
-.metrics-panel .run-status {
-    margin-bottom: 12px;
-}
-
-.metrics-panel .metric-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 9px;
-}
-
-.metrics-panel .metric-card {
-    min-height: 72px;
-    padding: 11px;
-    border-color: rgba(125, 246, 239, 0.14);
-    background: rgba(255, 255, 255, 0.065);
-}
-
-.metrics-panel .metric-value {
-    font-size: 1rem;
-}
-
 .secondary-panel {
     margin-top: 14px;
 }
@@ -1141,32 +741,25 @@ gradio-app {
 }
 
 .control-panel .block,
-.metrics-panel .block,
-.viewer-panel .block,
 .result-panel .block {
     background: rgba(255, 255, 255, 0.045) !important;
     border-color: rgba(125, 246, 239, 0.12) !important;
 }
 
 .control-panel [data-testid="block-label"],
-.metrics-panel [data-testid="block-label"],
 .result-panel [data-testid="block-label"] {
     color: #22d3c5 !important;
 }
 
 .control-panel input,
 .control-panel textarea,
-.control-panel select,
-.metrics-panel input,
-.metrics-panel textarea,
-.metrics-panel select {
+.control-panel select {
     background: rgba(255, 255, 255, 0.06) !important;
     border-color: rgba(125, 246, 239, 0.16) !important;
     color: #e7f1f4 !important;
 }
 
 .control-panel .wrap,
-.metrics-panel .wrap,
 .result-panel .wrap {
     background: rgba(255, 255, 255, 0.04) !important;
     border-color: rgba(125, 246, 239, 0.12) !important;
@@ -1185,23 +778,12 @@ gradio-app {
 }
 
 @media (max-width: 900px) {
-    .hero-strip,
-    .metric-grid,
-    .truck-card-grid {
+    .metric-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .model-stage-header {
-        display: block;
     }
 
     .result-header {
         display: block;
-    }
-
-    .model-pill {
-        display: inline-block;
-        margin-top: 12px;
     }
 
     .result-pill {
@@ -1211,14 +793,13 @@ gradio-app {
 }
 
 @media (max-width: 1180px) {
-    .cockpit-workspace,
     .secondary-grid {
         display: flex !important;
         flex-direction: column !important;
     }
 }
 
-/* M5.4 stage-first horizontal layout */
+/* Stage-first horizontal layout */
 .command-panel,
 .stage-viewer-panel,
 .run-output-strip > div,
@@ -1303,35 +884,6 @@ gradio-app {
 .command-cell .block:has(.visually-hidden-panel),
 .command-cell .wrap:has(.visually-hidden-panel) {
     display: none !important;
-}
-
-.selected-truck-compact {
-    grid-template-columns: 62px minmax(0, 1fr);
-    margin-top: 0;
-    min-height: 92px;
-    height: 100%;
-}
-
-.selected-truck-compact .selected-preview {
-    min-height: 62px;
-}
-
-.selected-truck-compact .selected-preview img {
-    width: 58px;
-    height: 58px;
-}
-
-.selected-truck-compact .variant-copy h3 {
-    margin: 0 0 6px;
-    font-family: var(--font-body) !important;
-    font-size: 0.9rem;
-}
-
-.selected-truck-compact .variant-copy p {
-    margin: 0;
-    font-size: 0.76rem !important;
-    line-height: 1.35 !important;
-    color: #b8c6cf !important;
 }
 
 .stage-viewer-panel {
@@ -1512,7 +1064,7 @@ gradio-app {
     color: #e7f1f4 !important;
 }
 
-/* M5.6 glossy glass controls */
+/* Glossy glass controls */
 .command-panel,
 .stage-viewer-panel,
 .run-output-strip > div,
@@ -1522,7 +1074,6 @@ gradio-app {
 .dataset-card,
 .validation-panel,
 .validation-item,
-.asset-preview-band,
 .truck-details,
 .run-status {
     position: relative;
@@ -1546,7 +1097,6 @@ gradio-app {
 .command-cell::before,
 .metric-card::before,
 .dataset-card::before,
-.asset-preview-band::before,
 .truck-details::before,
 .run-status::before {
     content: "";
@@ -1566,7 +1116,6 @@ gradio-app {
 .command-cell > *,
 .metric-card > *,
 .dataset-card > *,
-.asset-preview-band > *,
 .truck-details > *,
 .run-status > * {
     position: relative;
@@ -1682,7 +1231,7 @@ gradio-app {
     box-shadow: none !important;
 }
 
-/* M5.7 control cleanup: remove Gradio's nested grey wrapper slabs. */
+/* Control cleanup: remove Gradio's nested grey wrapper slabs. */
 .command-cell .block,
 .command-cell .form,
 .command-cell .wrap,
@@ -1804,7 +1353,7 @@ gradio-app {
     height: 6px !important;
 }
 
-/* M5.8 global cleanup: keep Gradio wrappers invisible outside real surfaces. */
+/* Global wrapper cleanup: keep Gradio wrappers invisible outside real surfaces. */
 .app-shell .wrap,
 .app-shell .block,
 .app-shell .form,
@@ -1871,7 +1420,6 @@ gradio-app {
 .app-shell .validation-item,
 .app-shell .run-status,
 .app-shell .dataset-warning,
-.app-shell .asset-preview-band,
 .app-shell .truck-details {
     border-color: rgba(178, 246, 242, 0.16) !important;
 }
@@ -1909,44 +1457,7 @@ gradio-app {
     background: #05090d !important;
 }
 
-.selected-preview,
-.truck-thumb {
-    overflow: hidden;
-    aspect-ratio: 1 / 1;
-    border-radius: 14px;
-    border: 1px solid rgba(178, 246, 242, 0.16);
-}
-
-.selected-truck-compact .selected-preview {
-    width: 62px;
-    height: 62px;
-    min-height: 62px;
-}
-
-.selected-truck-compact .selected-preview img,
-.truck-thumb img {
-    width: 52px !important;
-    height: 52px !important;
-    max-width: 52px !important;
-    max-height: 52px !important;
-    object-fit: contain !important;
-    object-position: center !important;
-}
-
-.selected-truck-compact {
-    align-items: center;
-}
-
-.selected-truck-compact .variant-copy {
-    min-width: 0;
-}
-
-.selected-truck-compact .variant-copy h3,
-.selected-truck-compact .variant-copy p {
-    overflow-wrap: anywhere;
-}
-
-/* M5.10 live-demo cleanup: plain labels, centered sliders, dark SVG plots. */
+/* Live-demo cleanup: plain labels, centered sliders, dark SVG plots. */
 .field-heading,
 .field-heading .prose,
 .field-heading p {
@@ -1974,8 +1485,7 @@ gradio-app {
 
 .hero-kicker,
 .result-kicker,
-.validation-kicker,
-.model-stage-kicker {
+.validation-kicker {
     font-family: var(--font-body) !important;
 }
 
@@ -2006,7 +1516,6 @@ gradio-app {
 .dataset-card,
 .validation-panel,
 .validation-item,
-.asset-preview-band,
 .truck-details,
 .run-status,
 .download-chip {
@@ -2022,17 +1531,10 @@ gradio-app {
 .command-cell::before,
 .metric-card::before,
 .dataset-card::before,
-.asset-preview-band::before,
 .truck-details::before,
 .run-status::before {
     opacity: 0.18 !important;
     background: linear-gradient(145deg, rgba(255, 255, 255, 0.04), transparent 24%) !important;
-}
-
-.selected-truck-compact .variant-copy h3,
-.selected-truck-compact .variant-copy p,
-.selected-truck-compact .variant-copy * {
-    font-family: var(--font-body) !important;
 }
 
 .command-cell label:has(input[type="radio"]) {
@@ -2410,33 +1912,10 @@ gradio-app {
         padding: 20px;
     }
 
-    .hero-strip,
     .metric-grid,
     .dataset-summary-grid,
-    .truck-card-grid,
     .validation-items,
     .download-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .model-stage {
-        min-height: 440px;
-        padding: 12px;
-    }
-
-    .main-workspace {
-        flex-direction: column !important;
-    }
-
-    .main-workspace > div,
-    .main-workspace .control-panel,
-    .main-workspace .stage-panel {
-        width: 100% !important;
-        min-width: 0 !important;
-        flex: 1 1 auto !important;
-    }
-
-    .asset-preview-band {
         grid-template-columns: 1fr;
     }
 }
@@ -2445,8 +1924,7 @@ gradio-app {
 
 BOX_PREVIEW_HEADERS = ["Box", "Dimensions", "Volume"]
 ROUTE_PREVIEW_HEADERS = ["Route / stop", "Customers", "Distance / location", "Boxes", "Status"]
-BUILD_LABEL = "M5.13 run setup cleanup build"
-BUILD_TARGET = "127.0.0.1:7891+"
+BUILD_LABEL = "Public demo build"
 
 TRUCK_BODY_OPTIONS = (
     ("City Mini Truck", "Open pickup body"),
@@ -2493,8 +1971,8 @@ def default_demo_label() -> str:
 def build_badge_html() -> str:
     return f"""
     <div class="build-badge">
-        <span>{BUILD_LABEL} | fresh-server validation target: {BUILD_TARGET}</span>
-        <span>No baseline models | Proposed GA only | Quick defaults 10 x 2</span>
+        <span>{BUILD_LABEL}</span>
+        <span>Proposed GA only | Quick defaults 10 x 2</span>
     </div>
     """
 
@@ -3123,25 +2601,6 @@ def image_data_uri(path: str) -> str:
     return f"data:image/png;base64,{encoded}"
 
 
-def selected_asset_html(truck_name: str, variant_name: str) -> str:
-    preset = get_preset(truck_name)
-    variant = preset.get_variant(variant_name)
-    preview_src = image_data_uri(preview_path_for(preset.name, variant.name))
-    dims = format_truck_dimensions(preset.length_mm, preset.width_mm, preset.height_mm)
-
-    return f"""
-    <div class="asset-preview-band selected-truck-compact">
-        <div class="selected-preview">
-            <img src="{preview_src}" alt="{escape(variant.name)} preview">
-        </div>
-        <div class="variant-copy">
-            <h3>{escape(variant.name)}</h3>
-            <p>{escape(preset.name)} | {escape(dims)}</p>
-        </div>
-    </div>
-    """
-
-
 def truck_body_card_asset_css() -> str:
     lines = []
     for index, (truck_name, variant_name) in enumerate(TRUCK_BODY_OPTIONS, start=1):
@@ -3190,25 +2649,6 @@ def update_dataset_source(source: str, demo_label: str, uploaded_file, truck_nam
 
 def update_dataset_selection(source: str, demo_label: str, uploaded_file, truck_name: str, variant_name: str):
     return dashboard_outputs(source, demo_label, uploaded_file, truck_name, variant_name)
-
-
-def update_truck_class(source: str, demo_label: str, uploaded_file, truck_name: str):
-    selected_variant = default_variant_name(truck_name)
-    dashboard = dashboard_outputs(source, demo_label, uploaded_file, truck_name, selected_variant)
-    return (
-        gr.update(choices=variant_names(truck_name), value=selected_variant),
-        format_dimensions(truck_name),
-        selected_asset_html(truck_name, selected_variant),
-        *dashboard[3:],
-    )
-
-
-def update_body_style(source: str, demo_label: str, uploaded_file, truck_name: str, variant_name: str):
-    dashboard = dashboard_outputs(source, demo_label, uploaded_file, truck_name, variant_name)
-    return (
-        selected_asset_html(truck_name, variant_name),
-        *dashboard[3:],
-    )
 
 
 def update_truck_body_choice(source: str, demo_label: str, uploaded_file, choice_key: str):
@@ -3346,39 +2786,6 @@ def footer_html() -> str:
         </div>
     </footer>
     """
-
-
-def truck_cards_html(selected_name: str) -> str:
-    cards = []
-    for name in preset_names():
-        preset = get_preset(name)
-        selected_class = " is-selected" if preset.name == selected_name else ""
-        visuals = "".join(
-            f"""
-            <div class="truck-thumb">
-                <img src="{image_data_uri(preview_path_for(preset.name, variant.name))}"
-                     alt="{escape(variant.name)} preview">
-            </div>
-            """
-            for variant in preset.variants
-        )
-        bodies = "".join(
-            f'<span class="body-chip">{escape(variant.name)}</span>' for variant in preset.variants
-        )
-        cards.append(
-            f"""
-            <div class="truck-card{selected_class}">
-                <div class="truck-card-visuals">{visuals}</div>
-                <div class="truck-card-kicker">{escape(preset.indian_equivalent)}</div>
-                <div class="truck-card-title">{escape(preset.name)}</div>
-                <div class="truck-card-dims">
-                    {escape(format_truck_dimensions(preset.length_mm, preset.width_mm, preset.height_mm))}
-                </div>
-                <div class="truck-card-bodies">{bodies}</div>
-            </div>
-            """
-        )
-    return f'<div class="truck-card-grid">{"".join(cards)}</div>'
 
 
 def build_app() -> gr.Blocks:
