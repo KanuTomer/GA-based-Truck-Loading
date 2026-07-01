@@ -1804,6 +1804,38 @@ gradio-app {
     padding-left: 0 !important;
 }
 
+.section-title-block,
+.section-title-block .block,
+.section-title-block .wrap,
+.section-title-block .form,
+.section-title-block .container,
+.secondary-panel .section-title-block,
+.secondary-panel .section-title-block * {
+    overflow: visible !important;
+    overflow-y: visible !important;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+}
+
+.section-title {
+    margin: 0 0 18px !important;
+    padding: 0 !important;
+    color: #e7f1f4 !important;
+    font-family: var(--font-heading) !important;
+    font-size: clamp(2.4rem, 3.2vw, 3.7rem) !important;
+    line-height: 0.86 !important;
+    letter-spacing: 0 !important;
+    text-align: left !important;
+}
+
+.secondary-panel .toolbar,
+.secondary-panel .toolbar-buttons,
+.secondary-panel button.icon-button,
+.secondary-panel .icon-button {
+    display: none !important;
+}
+
 .route-geometry-card {
     width: 100%;
     min-height: 360px;
@@ -2788,6 +2820,10 @@ def footer_html() -> str:
     """
 
 
+def section_title_html(title: str) -> str:
+    return f'<h2 class="section-title">{escape(title)}</h2>'
+
+
 def build_app() -> gr.Blocks:
     default_truck = preset_names()[0]
     default_variant = default_variant_name(default_truck)
@@ -2901,7 +2937,10 @@ def build_app() -> gr.Blocks:
                 validation_status = gr.HTML(default_dashboard[5])
                 with gr.Row(elem_classes=["secondary-grid"]):
                     with gr.Column(scale=1):
-                        gr.Markdown("### Box preview")
+                        gr.HTML(
+                            section_title_html("Box preview"),
+                            elem_classes=["section-title-block"],
+                        )
                         box_preview = gr.Dataframe(
                             headers=BOX_PREVIEW_HEADERS,
                             value=box_preview_rows(default_bundle),
@@ -2911,14 +2950,23 @@ def build_app() -> gr.Blocks:
                             wrap=True,
                         )
                     with gr.Column(scale=1):
-                        gr.Markdown("### Convergence preview")
+                        gr.HTML(
+                            section_title_html("Convergence preview"),
+                            elem_classes=["section-title-block"],
+                        )
                         convergence_preview = gr.HTML(default_dashboard[9])
                 with gr.Row(elem_classes=["secondary-grid"]):
                     with gr.Column(scale=1):
-                        gr.Markdown("### Customer geometry")
+                        gr.HTML(
+                            section_title_html("Customer geometry"),
+                            elem_classes=["section-title-block"],
+                        )
                         route_plot = gr.HTML(default_dashboard[8])
                     with gr.Column(scale=1):
-                        gr.Markdown("### Route preview")
+                        gr.HTML(
+                            section_title_html("Route preview"),
+                            elem_classes=["section-title-block"],
+                        )
                         route_summary = gr.Dataframe(
                             headers=ROUTE_PREVIEW_HEADERS,
                             value=default_dashboard[7],
@@ -2926,7 +2974,10 @@ def build_app() -> gr.Blocks:
                             wrap=True,
                         )
                     with gr.Column(scale=1):
-                        gr.Markdown("### Downloads")
+                        gr.HTML(
+                            section_title_html("Downloads"),
+                            elem_classes=["section-title-block"],
+                        )
                         downloads_placeholder = gr.HTML(default_dashboard[10])
 
             gr.HTML(footer_html())
