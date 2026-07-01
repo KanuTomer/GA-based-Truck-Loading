@@ -1246,9 +1246,9 @@ gradio-app {
 
 .command-bar {
     display: grid !important;
-    grid-template-columns: minmax(230px, 1fr) minmax(240px, 1fr) minmax(250px, 0.9fr) minmax(280px, 1fr);
+    grid-template-columns: minmax(230px, 1fr) minmax(340px, 1.35fr) minmax(230px, 0.86fr) minmax(220px, 0.78fr);
     gap: 12px !important;
-    align-items: stretch !important;
+    align-items: start !important;
 }
 
 .command-bar > div,
@@ -1262,6 +1262,7 @@ gradio-app {
     border-radius: 12px;
     background: rgba(255, 255, 255, 0.045);
     padding: 12px;
+    overflow: hidden !important;
 }
 
 .dataset-status-strip {
@@ -2122,6 +2123,170 @@ gradio-app {
     width: 100% !important;
 }
 
+.truck-body-card-radio {
+    width: 100% !important;
+}
+
+.truck-body-card-radio .wrap,
+.truck-body-card-radio .form,
+.truck-body-card-radio .container,
+.truck-body-card-radio [role="radiogroup"],
+.truck-body-card-radio [data-testid="radio-group"],
+.truck-body-card-radio .wrap > div {
+    width: 100% !important;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+}
+
+.truck-body-card-radio [role="radiogroup"],
+.truck-body-card-radio [data-testid="radio-group"],
+.truck-body-card-radio .wrap > div {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+}
+
+.truck-body-card-radio label:has(input[type="radio"]) {
+    position: relative !important;
+    display: flex !important;
+    align-items: center !important;
+    min-height: 92px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 14px 16px 14px 116px !important;
+    border: 1px solid rgba(178, 246, 242, 0.2) !important;
+    border-radius: 14px !important;
+    background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.012)),
+        rgba(9, 16, 21, 0.82) !important;
+    color: #dce8ed !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 10px 22px rgba(0, 0, 0, 0.18) !important;
+    font-family: var(--font-body) !important;
+    font-size: 0.72rem !important;
+    line-height: 1.45 !important;
+    white-space: normal !important;
+    overflow: hidden !important;
+}
+
+.truck-body-card-radio label:has(input[type="radio"]:checked) {
+    border-color: rgba(34, 211, 197, 0.78) !important;
+    background:
+        linear-gradient(135deg, rgba(34, 211, 197, 0.27), rgba(34, 211, 197, 0.1)),
+        rgba(11, 28, 31, 0.9) !important;
+    color: #f4ffff !important;
+}
+
+.truck-body-card-radio label:has(input[type="radio"])::after {
+    content: "" !important;
+    position: absolute !important;
+    left: 18px !important;
+    top: 50% !important;
+    width: 72px !important;
+    height: 72px !important;
+    transform: translateY(-50%) !important;
+    border: 1px solid rgba(178, 246, 242, 0.2) !important;
+    border-radius: 13px !important;
+    background-color: rgba(255, 255, 255, 0.055) !important;
+    background-repeat: no-repeat !important;
+    background-position: center !important;
+    background-size: 64px 64px !important;
+    overflow: hidden !important;
+}
+
+.truck-body-card-radio label:has(input[type="radio"]:checked)::after {
+    content: "" !important;
+    left: 18px !important;
+    top: 50% !important;
+    width: 72px !important;
+    height: 72px !important;
+    transform: translateY(-50%) !important;
+    border-radius: 13px !important;
+    background-repeat: no-repeat !important;
+    background-position: center !important;
+    background-size: 64px 64px !important;
+    box-shadow: none !important;
+}
+
+.truck-body-card-radio label:has(input[type="radio"])::before {
+    left: 96px !important;
+    width: 16px !important;
+    height: 16px !important;
+}
+
+.truck-body-card-radio label:has(input[type="radio"]:checked)::before {
+    border-color: rgba(236, 255, 251, 0.8) !important;
+    background: rgba(236, 255, 251, 0.18) !important;
+}
+
+.truck-body-card-radio label:has(input[type="radio"]:checked) input + span,
+.truck-body-card-radio label:has(input[type="radio"]:checked) span {
+    color: #f4ffff !important;
+}
+
+.hidden-state-controls,
+.hidden-state-controls *,
+.hidden-state-controls .wrap,
+.hidden-state-controls .block,
+.hidden-state-controls .form,
+.hidden-state-controls .container {
+    display: none !important;
+}
+
+.run-action-cell {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    gap: 14px !important;
+}
+
+.run-action-copy {
+    color: #9fb0bb !important;
+    font-size: 0.76rem !important;
+    line-height: 1.45 !important;
+}
+
+.command-panel input[type="number"],
+.command-panel input[type="number"] *,
+.command-panel input[type="number"]::-webkit-outer-spin-button,
+.command-panel input[type="number"]::-webkit-inner-spin-button {
+    appearance: textfield !important;
+    -moz-appearance: textfield !important;
+    -webkit-appearance: none !important;
+    margin: 0 !important;
+}
+
+.command-panel button[aria-label*="Reset"],
+.command-panel button[title*="Reset"],
+.command-panel button[aria-label*="Increase"],
+.command-panel button[aria-label*="Decrease"],
+.command-panel .reset-button,
+.command-panel .stepper,
+.command-panel .number-control {
+    display: none !important;
+}
+
+.command-panel > .prose,
+.stage-viewer-panel > .prose,
+.result-panel > .prose,
+.secondary-panel > .prose,
+.secondary-grid > div > .prose,
+.secondary-grid .prose,
+.secondary-panel h2,
+.secondary-panel h3,
+.stage-viewer-panel h2,
+.run-output-strip h2 {
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+    text-align: left !important;
+}
+
+.secondary-grid > div {
+    padding-left: 0 !important;
+}
+
 .route-geometry-card {
     width: 100%;
     min-height: 360px;
@@ -2265,7 +2430,45 @@ gradio-app {
 
 BOX_PREVIEW_HEADERS = ["Box", "Dimensions", "Volume"]
 ROUTE_PREVIEW_HEADERS = ["Route / stop", "Customers", "Distance / location", "Boxes", "Status"]
-BUILD_LABEL = "M5.11 dataset button cleanup build"
+BUILD_LABEL = "M5.12 truck card selector cleanup build"
+BUILD_TARGET = "127.0.0.1:7876+"
+
+TRUCK_BODY_OPTIONS = (
+    ("City Mini Truck", "Open pickup body"),
+    ("City Mini Truck", "Closed delivery van"),
+    ("Medium Cargo Truck", "Covered cargo body"),
+    ("Medium Cargo Truck", "Flatbed utility body"),
+)
+
+
+def truck_body_key(truck_name: str, variant_name: str) -> str:
+    return f"{truck_name}::{variant_name}"
+
+
+def truck_body_choice_label(truck_name: str, variant_name: str) -> str:
+    preset = get_preset(truck_name)
+    dims = format_truck_dimensions(preset.length_mm, preset.width_mm, preset.height_mm)
+    return f"{variant_name} | {truck_name} | {dims}"
+
+
+TRUCK_BODY_CHOICES = [
+    (truck_body_choice_label(truck_name, variant_name), truck_body_key(truck_name, variant_name))
+    for truck_name, variant_name in TRUCK_BODY_OPTIONS
+]
+TRUCK_BODY_STATE = {
+    truck_body_key(truck_name, variant_name): (truck_name, variant_name)
+    for truck_name, variant_name in TRUCK_BODY_OPTIONS
+}
+
+
+def default_truck_body_key() -> str:
+    return truck_body_key(TRUCK_BODY_OPTIONS[0][0], TRUCK_BODY_OPTIONS[0][1])
+
+
+def parse_truck_body_choice(choice_key: str | None) -> tuple[str, str]:
+    if choice_key in TRUCK_BODY_STATE:
+        return TRUCK_BODY_STATE[choice_key]
+    return TRUCK_BODY_OPTIONS[0]
 
 
 def default_demo_label() -> str:
@@ -2275,7 +2478,7 @@ def default_demo_label() -> str:
 def build_badge_html() -> str:
     return f"""
     <div class="build-badge">
-        <span>{BUILD_LABEL} | fresh-server validation target: 127.0.0.1:7873+</span>
+        <span>{BUILD_LABEL} | fresh-server validation target: {BUILD_TARGET}</span>
         <span>No baseline models | Proposed GA only | Quick defaults 10 x 2</span>
     </div>
     """
@@ -2924,6 +3127,23 @@ def selected_asset_html(truck_name: str, variant_name: str) -> str:
     """
 
 
+def truck_body_card_asset_css() -> str:
+    lines = []
+    for index, (truck_name, variant_name) in enumerate(TRUCK_BODY_OPTIONS, start=1):
+        preview_src = image_data_uri(preview_path_for(truck_name, variant_name))
+        lines.append(
+            f"""
+            .truck-body-card-radio label:has(input[type="radio"]):nth-of-type({index})::after {{
+                background-image: url("{preview_src}") !important;
+            }}
+            """
+        )
+    return "\n".join(lines)
+
+
+CUSTOM_CSS += truck_body_card_asset_css()
+
+
 def ready_status(
     source: str,
     truck_name: str,
@@ -2972,6 +3192,16 @@ def update_body_style(source: str, demo_label: str, uploaded_file, truck_name: s
     dashboard = dashboard_outputs(source, demo_label, uploaded_file, truck_name, variant_name)
     return (
         selected_asset_html(truck_name, variant_name),
+        *dashboard[3:],
+    )
+
+
+def update_truck_body_choice(source: str, demo_label: str, uploaded_file, choice_key: str):
+    truck_name, variant_name = parse_truck_body_choice(choice_key)
+    dashboard = dashboard_outputs(source, demo_label, uploaded_file, truck_name, variant_name)
+    return (
+        gr.update(value=truck_name),
+        gr.update(choices=variant_names(truck_name), value=variant_name),
         *dashboard[3:],
     )
 
@@ -3196,30 +3426,29 @@ def build_app() -> gr.Blocks:
                             file_types=[".json"],
                             visible=False,
                         )
-                    with gr.Column(scale=1, min_width=220, elem_classes=["command-cell"]):
-                        gr.Markdown("Truck class", elem_classes=["field-heading"])
-                        truck_preset = gr.Radio(
-                            choices=preset_names(),
-                            value=default_truck,
+                    with gr.Column(scale=1, min_width=320, elem_classes=["command-cell"]):
+                        gr.Markdown("Truck body", elem_classes=["field-heading"])
+                        truck_body_choice = gr.Radio(
+                            choices=TRUCK_BODY_CHOICES,
+                            value=default_truck_body_key(),
                             label=None,
                             show_label=False,
-                            elem_classes=["truck-class-radio"],
+                            elem_classes=["truck-body-card-radio"],
                         )
-                        gr.Markdown("Body style", elem_classes=["field-heading"])
-                        truck_variant = gr.Radio(
-                            choices=variant_names(default_truck),
-                            value=default_variant,
-                            label=None,
-                            show_label=False,
-                            elem_classes=["body-style-radio"],
-                        )
-                    with gr.Column(scale=1, min_width=220, elem_classes=["command-cell", "truck-summary-cell"]):
-                        selected_truck_preview = gr.HTML(selected_asset_html(default_truck, default_variant))
-                        truck_dimensions = gr.Markdown(
-                            format_dimensions(default_truck),
-                            elem_classes=["truck-details", "visually-hidden-panel"],
-                        )
-                    with gr.Column(scale=1, min_width=240, elem_classes=["command-cell"]):
+                        with gr.Column(elem_classes=["hidden-state-controls"]):
+                            truck_preset = gr.Radio(
+                                choices=preset_names(),
+                                value=default_truck,
+                                label=None,
+                                show_label=False,
+                            )
+                            truck_variant = gr.Radio(
+                                choices=variant_names(default_truck),
+                                value=default_variant,
+                                label=None,
+                                show_label=False,
+                            )
+                    with gr.Column(scale=1, min_width=230, elem_classes=["command-cell"]):
                         with gr.Row():
                             with gr.Column(elem_classes=["slider-stack"]):
                                 gr.Markdown("Population", elem_classes=["field-heading"])
@@ -3242,6 +3471,12 @@ def build_app() -> gr.Blocks:
                                     show_label=False,
                                     interactive=True,
                                 )
+                    with gr.Column(scale=1, min_width=220, elem_classes=["command-cell", "run-action-cell"]):
+                        gr.Markdown("Run", elem_classes=["field-heading"])
+                        gr.Markdown(
+                            "Quick defaults are tuned for the browser demo. Larger runs are available from the sliders.",
+                            elem_classes=["run-action-copy"],
+                        )
                         run_button = gr.Button("Run proposed GA", variant="primary")
                 dataset_status = gr.Markdown(
                     dataset_helper("Demo dataset", bundle=default_bundle),
@@ -3357,30 +3592,12 @@ def build_app() -> gr.Blocks:
                 run_button,
             ],
         )
-        truck_preset.change(
-            fn=update_truck_class,
-            inputs=[dataset_source, demo_dataset, upload_file, truck_preset],
+        truck_body_choice.change(
+            fn=update_truck_body_choice,
+            inputs=[dataset_source, demo_dataset, upload_file, truck_body_choice],
             outputs=[
+                truck_preset,
                 truck_variant,
-                truck_dimensions,
-                selected_truck_preview,
-                run_status,
-                dashboard_header,
-                validation_status,
-                result_metrics,
-                route_summary,
-                route_plot,
-                convergence_preview,
-                downloads_placeholder,
-                packing_viewer,
-                run_button,
-            ],
-        )
-        truck_variant.change(
-            fn=update_body_style,
-            inputs=[dataset_source, demo_dataset, upload_file, truck_preset, truck_variant],
-            outputs=[
-                selected_truck_preview,
                 run_status,
                 dashboard_header,
                 validation_status,
